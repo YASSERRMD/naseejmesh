@@ -25,6 +25,8 @@ export interface ServiceNodeData {
     topic?: string;
     requestsPerSec?: number;
     description?: string;
+    // Index signature for React Flow compatibility
+    [key: string]: unknown;
 }
 
 export type ServiceNode = Node<ServiceNodeData, "service">;
@@ -32,6 +34,8 @@ export type ServiceNode = Node<ServiceNodeData, "service">;
 export interface MeshEdgeData {
     animated?: boolean;
     label?: string;
+    // Index signature for React Flow compatibility
+    [key: string]: unknown;
 }
 
 export type MeshEdge = Edge<MeshEdgeData>;

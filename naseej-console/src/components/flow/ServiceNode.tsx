@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import { Handle, Position, NodeProps } from "@xyflow/react";
+import { Handle, Position } from "@xyflow/react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -43,7 +43,9 @@ const statusColors: Record<ServiceStatus, string> = {
     offline: "bg-gray-500",
 };
 
-interface ServiceNodeProps extends NodeProps<ServiceNodeData> {
+// Use a simple props interface compatible with React Flow
+interface ServiceNodeProps {
+    data: ServiceNodeData;
     selected?: boolean;
 }
 

@@ -1,4 +1,4 @@
-# Build stage
+# Build stage - using nightly for edition2024 support
 FROM rust:1.83-slim-bookworm AS builder
 
 WORKDIR /app
@@ -8,14 +8,18 @@ RUN apt-get update && apt-get install -y \
     pkg-config \
     libssl-dev \
     curl \
+    clang \
     && rm -rf /var/lib/apt/lists/*
+
+# Install nightly toolchain for edition2024 support
+RUN rustup install nightly && rustup default nightly
 
 # Copy workspace files
 COPY Cargo.toml Cargo.lock ./
 COPY crates ./crates
 
-# Build the console binary
-RUN cargo build --release -p naseej-console
+# Build the console binary with nightly
+RUN cargo +nightly build --release -p naseej-console
 
 # Runtime stage
 FROM debian:bookworm-slim

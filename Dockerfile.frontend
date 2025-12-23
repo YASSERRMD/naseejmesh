@@ -3,11 +3,11 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
-COPY naseej-console/package*.json ./
+# Copy package files including lock file
+COPY naseej-console/package.json naseej-console/package-lock.json ./
 
-# Install dependencies
-RUN npm ci
+# Install dependencies (use npm install for flexibility)
+RUN npm install
 
 # Copy source files
 COPY naseej-console .
@@ -37,7 +37,7 @@ EXPOSE 3000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 1
 
 # Start the application
 CMD ["npm", "start"]
