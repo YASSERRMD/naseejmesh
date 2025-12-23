@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
+import { ToastProvider } from "@/components/toast-provider";
 import "../globals.css";
 
 const inter = Inter({
@@ -52,6 +53,7 @@ export default async function RootLayout({
             <body className={`${inter.variable} ${fontClass} antialiased`}>
                 <NextIntlClientProvider messages={messages}>
                     {children}
+                    <ToastProvider />
                 </NextIntlClientProvider>
             </body>
         </html>
