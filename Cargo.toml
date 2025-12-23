@@ -5,6 +5,7 @@ members = [
     "crates/protocol-adapters",
     "crates/cognitive-core",
     "crates/naseej-console",
+    "crates/naseej-security",
     "crates/naseejmesh-server"
 ]
 resolver = "2"
@@ -37,6 +38,9 @@ surrealdb = { version = "2", features = ["kv-rocksdb"] }
 
 # Concurrency
 arc-swap = "1"
+
+# Caching
+moka = { version = "0.12", features = ["future"] }
 
 # Serialization
 serde = { version = "1", features = ["derive"] }
@@ -73,12 +77,19 @@ openapiv3 = "2"
 async-openai = "0.27"
 reqwest = { version = "0.12", features = ["json"] }
 
+# Security & Auth
+jsonwebtoken = "9"
+sha2 = "0.10"
+base64 = "0.22"
+
 # Utilities
 futures = "0.3"
 async-trait = "0.1"
 uuid = { version = "1", features = ["v4"] }
 chrono = { version = "0.4", features = ["serde"] }
 regex = "1"
+parking_lot = "0.12"
+dashmap = "6"
 
 [profile.release]
 lto = true
