@@ -1,0 +1,56 @@
+[package]
+name = "protocol-adapters"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Multi-protocol adapters for NaseejMesh - MQTT, gRPC, SOAP"
+
+[dependencies]
+# Internal crates
+gateway-core = { path = "../gateway-core" }
+
+# Async Runtime
+tokio = { workspace = true }
+tokio-util = { workspace = true }
+
+# Core types
+bytes = { workspace = true }
+
+# Concurrency
+arc-swap = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Error Handling
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+
+# Logging & Observability
+tracing = { workspace = true }
+tracing-opentelemetry = { workspace = true }
+opentelemetry = { workspace = true }
+opentelemetry_sdk = { workspace = true }
+
+# gRPC
+tonic = { workspace = true }
+prost = { workspace = true }
+prost-reflect = { workspace = true }
+prost-types = { workspace = true }
+
+# MQTT
+rumqttc = { workspace = true }
+
+# XML
+quick-xml = { workspace = true }
+
+# Utilities
+futures = { workspace = true }
+async-trait = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true }
