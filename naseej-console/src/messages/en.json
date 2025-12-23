@@ -1,0 +1,36 @@
+{
+    "common": {
+        "appName": "Naseej Console",
+        "search": "Search...",
+        "searchHint": "Press ⌘K to search"
+    },
+    "nav": {
+        "dashboard": "Dashboard",
+        "routes": "Routes",
+        "transformations": "Transformations",
+        "schemas": "API Schemas",
+        "security": "Security",
+        "monitoring": "Monitoring"
+    },
+    "sidebar": {
+        "collapse": "Collapse sidebar",
+        "expand": "Expand sidebar"
+    },
+    "header": {
+        "theme": "Toggle theme",
+        "language": "Switch language"
+    },
+    "gateway": {
+        "status": "Gateway Status",
+        "healthy": "Healthy",
+        "unhealthy": "Unhealthy",
+        "version": "Version",
+        "uptime": "Uptime",
+        "requests": "Requests/sec"
+    },
+    "actions": {
+        "newRoute": "New Route",
+        "importOpenAPI": "Import OpenAPI",
+        "testTransform": "Test Transform"
+    }
+}

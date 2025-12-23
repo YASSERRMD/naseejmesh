@@ -1,0 +1,36 @@
+{
+    "common": {
+        "appName": "نسيج كونسول",
+        "search": "بحث...",
+        "searchHint": "اضغط ⌘K للبحث"
+    },
+    "nav": {
+        "dashboard": "لوحة التحكم",
+        "routes": "المسارات",
+        "transformations": "التحويلات",
+        "schemas": "مخططات API",
+        "security": "الأمان",
+        "monitoring": "المراقبة"
+    },
+    "sidebar": {
+        "collapse": "طي الشريط الجانبي",
+        "expand": "توسيع الشريط الجانبي"
+    },
+    "header": {
+        "theme": "تبديل المظهر",
+        "language": "تغيير اللغة"
+    },
+    "gateway": {
+        "status": "حالة البوابة",
+        "healthy": "سليم",
+        "unhealthy": "غير سليم",
+        "version": "الإصدار",
+        "uptime": "وقت التشغيل",
+        "requests": "الطلبات/ثانية"
+    },
+    "actions": {
+        "newRoute": "مسار جديد",
+        "importOpenAPI": "استيراد OpenAPI",
+        "testTransform": "اختبار التحويل"
+    }
+}
