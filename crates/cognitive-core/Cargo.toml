@@ -1,0 +1,53 @@
+[package]
+name = "cognitive-core"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "AI-driven cognitive control plane for NaseejMesh - Rig, Rhai, MCP"
+
+[dependencies]
+# Internal crates
+gateway-core = { path = "../gateway-core" }
+protocol-adapters = { path = "../protocol-adapters" }
+
+# Async Runtime
+tokio = { workspace = true }
+
+# Core types
+bytes = { workspace = true }
+
+# Database
+surrealdb = { workspace = true }
+
+# Concurrency
+arc-swap = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+serde_yaml = "0.9"
+
+# Error Handling
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+
+# AI & Scripting
+rig-core = { workspace = true }
+rhai = { workspace = true }
+openapiv3 = { workspace = true }
+async-openai = { workspace = true }
+reqwest = { workspace = true }
+
+# Utilities
+futures = { workspace = true }
+async-trait = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+regex = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true }
