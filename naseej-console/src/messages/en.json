@@ -10,7 +10,8 @@
         "transformations": "Transformations",
         "schemas": "API Schemas",
         "security": "Security",
-        "monitoring": "Monitoring"
+        "monitoring": "Monitoring",
+        "settings": "Settings"
     },
     "sidebar": {
         "collapse": "Collapse sidebar",

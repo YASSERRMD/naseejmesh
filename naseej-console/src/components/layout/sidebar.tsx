@@ -17,6 +17,7 @@ import {
     Upload,
     TestTube,
     Zap,
+    Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,7 @@ const navItems: NavItem[] = [
     { href: "/schemas", icon: FileJson, labelKey: "schemas" },
     { href: "/security", icon: Shield, labelKey: "security" },
     { href: "/monitoring", icon: Activity, labelKey: "monitoring" },
+    { href: "/settings", icon: Settings, labelKey: "settings" },
 ];
 
 interface SidebarProps {
@@ -111,10 +113,12 @@ export function Sidebar({ locale }: SidebarProps) {
                         Quick Actions
                     </p>
                     <div className="space-y-1">
-                        <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
-                            <Plus className="h-4 w-4" />
-                            {tActions("newRoute")}
-                        </Button>
+                        <Link href={`/${locale}/routes/new`}>
+                            <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
+                                <Plus className="h-4 w-4" />
+                                {tActions("newRoute")}
+                            </Button>
+                        </Link>
                         <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
                             <Upload className="h-4 w-4" />
                             {tActions("importOpenAPI")}
