@@ -1,0 +1,66 @@
+version: "3.8"
+
+# Docker Compose for NaseejMesh Testing
+# Run: docker-compose -f docker-compose.test.yml up
+
+services:
+  # SurrealDB for testing
+  surrealdb:
+    image: surrealdb/surrealdb:v2.0.1
+    container_name: naseej-test-db
+    command: start --log trace --user root --pass root memory
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - naseej-test
+
+  # Mock backend service
+  mock-backend:
+    image: kennethreitz/httpbin
+    container_name: naseej-mock-backend
+    ports:
+      - "9080:80"
+    networks:
+      - naseej-test
+
+  # Mock MQTT broker
+  mqtt-broker:
+    image: eclipse-mosquitto:2
+    container_name: naseej-mqtt-broker
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./tests/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    networks:
+      - naseej-test
+
+  # Test runner
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    container_name: naseej-test-runner
+    depends_on:
+      surrealdb:
+        condition: service_healthy
+      mock-backend:
+        condition: service_started
+    environment:
+      - SURREAL_URL=ws://surrealdb:8000
+      - MOCK_BACKEND_URL=http://mock-backend:80
+      - MQTT_BROKER_URL=mqtt://mqtt-broker:1883
+      - RUST_LOG=info
+      - RUST_BACKTRACE=1
+    networks:
+      - naseej-test
+    command: cargo test --all --no-fail-fast
+
+networks:
+  naseej-test:
+    driver: bridge

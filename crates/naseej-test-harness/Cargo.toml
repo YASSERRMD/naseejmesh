@@ -1,0 +1,47 @@
+[package]
+name = "naseej-test-harness"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Integration test harness for NaseejMesh"
+
+[dependencies]
+# Internal crates
+gateway-core = { path = "../gateway-core" }
+naseej-security = { path = "../naseej-security" }
+
+# Async Runtime
+tokio = { workspace = true }
+
+# HTTP
+reqwest = { workspace = true }
+axum = { workspace = true }
+bytes = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Error Handling
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+# Testing
+proptest = { workspace = true }
+wiremock = { workspace = true }
+assert-json-diff = { workspace = true }
+tokio-test = { workspace = true }
+
+# Utilities
+uuid = { workspace = true }
+chrono = { workspace = true }
+rand = { workspace = true }
+futures = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true }

@@ -6,6 +6,7 @@ members = [
     "crates/cognitive-core",
     "crates/naseej-console",
     "crates/naseej-security",
+    "crates/naseej-test-harness",
     "crates/naseejmesh-server"
 ]
 resolver = "2"
@@ -82,6 +83,12 @@ jsonwebtoken = "9"
 sha2 = "0.10"
 base64 = "0.22"
 
+# Testing
+proptest = "1"
+tokio-test = "0.4"
+wiremock = "0.6"
+assert-json-diff = "2"
+
 # Utilities
 futures = "0.3"
 async-trait = "0.1"
@@ -90,6 +97,7 @@ chrono = { version = "0.4", features = ["serde"] }
 regex = "1"
 parking_lot = "0.12"
 dashmap = "6"
+rand = "0.8"
 
 [profile.release]
 lto = true
@@ -100,3 +108,4 @@ panic = 'abort'
 [profile.dev]
 opt-level = 0
 debug = true
+
