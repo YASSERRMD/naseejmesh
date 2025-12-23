@@ -17,6 +17,7 @@ pub mod tools;
 
 pub use schema_ingestor::{SchemaIngestor, ApiEndpoint};
 pub use rhai_engine::RhaiEngine;
-pub use architect::NaseejArchitect;
+pub use architect::{NaseejArchitect, ArchitectConfig};
 pub use mcp_server::McpServer;
 pub use vector_store::VectorStore;
+
