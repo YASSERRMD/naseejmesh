@@ -1,0 +1,23 @@
+# Build artifacts
+/target/
+
+# Database files (local development)
+/data/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment files with secrets
+.env.local
+.env.production
