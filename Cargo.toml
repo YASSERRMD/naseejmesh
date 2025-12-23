@@ -4,6 +4,7 @@ members = [
     "crates/surreal-config",
     "crates/protocol-adapters",
     "crates/cognitive-core",
+    "crates/naseej-console",
     "crates/naseejmesh-server"
 ]
 resolver = "2"
@@ -25,6 +26,11 @@ hyper = { version = "1", features = ["full"] }
 hyper-util = { version = "0.1", features = ["full"] }
 http-body-util = "0.1"
 bytes = "1"
+
+# Web Framework
+axum = { version = "0.7", features = ["macros"] }
+tower = "0.5"
+tower-http = { version = "0.6", features = ["cors", "trace"] }
 
 # Database
 surrealdb = { version = "2", features = ["kv-rocksdb"] }

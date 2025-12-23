@@ -32,5 +32,10 @@ tracing = { workspace = true }
 # Utilities
 futures = { workspace = true }
 
+# Scripting
+rhai = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+
 [dev-dependencies]
 tokio = { workspace = true }
