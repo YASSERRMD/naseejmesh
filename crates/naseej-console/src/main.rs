@@ -44,7 +44,7 @@ pub async fn run_server(config: ServerConfig) -> anyhow::Result<()> {
     let subscriber = FmtSubscriber::builder()
         .with_max_level(Level::INFO)
         .finish();
-    tracing::subscriber::set_global_default(subscriber)?;
+    let _ = tracing::subscriber::set_global_default(subscriber);
 
     // Create application state
     let state = AppState::new();
@@ -72,10 +72,19 @@ pub fn create_router(state: AppState) -> Router {
     Router::new()
         // Health check
         .route("/health", get(health_check))
+        // Status & Metrics (NEW)
+        .route("/api/status", get(handlers::get_status))
+        .route("/api/metrics", get(handlers::get_metrics))
         // Routes management
         .route("/api/routes", get(handlers::list_routes))
         .route("/api/routes", post(handlers::create_route))
-        // Transformation
+        // Transformations (NEW)
+        .route("/api/transformations", get(handlers::list_transformations))
+        // Security (NEW)
+        .route("/api/security/events", get(handlers::list_security_events))
+        // Schemas (NEW)
+        .route("/api/schemas", get(handlers::list_schemas))
+        // Transformation simulation
         .route("/api/simulate", post(handlers::simulate_transform))
         .route("/api/validate", post(handlers::validate_transform))
         // AI Chat

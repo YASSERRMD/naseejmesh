@@ -1,43 +1,52 @@
 version: "3.8"
 
 services:
-  # SurrealDB for development/testing
-  surrealdb:
-    image: surrealdb/surrealdb:latest
-    container_name: naseejmesh-surrealdb
-    command: start --user root --pass root --log debug
-    ports:
-      - "8000:8000"
-    volumes:
-      - surrealdb-data:/data
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-
-  # Gateway (when running in Docker)
-  gateway:
+  # Rust Backend API
+  backend:
     build:
       context: .
-      dockerfile: Dockerfile
-    container_name: naseejmesh-gateway
-    environment:
-      - PORT=8080
-      - HOST=0.0.0.0
-      - DEV_MODE=1
-      - SURREAL_EMBEDDED=false
-      - SURREAL_URL=ws://surrealdb:8000
-      - SURREAL_USER=root
-      - SURREAL_PASS=root
-      - RUST_LOG=info,gateway_core=debug,surreal_config=debug
+      dockerfile: Dockerfile.backend
+    container_name: naseej-backend
     ports:
-      - "8080:8080"
-    depends_on:
-      surrealdb:
-        condition: service_healthy
+      - "3001:3001"
+    environment:
+      - RUST_LOG=info
+      - HOST=0.0.0.0
+      - PORT=3001
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:3001/health" ]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
     restart: unless-stopped
+    networks:
+      - naseej-network
 
-volumes:
-  surrealdb-data:
+  # Next.js Frontend
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: naseej-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://backend:3001
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000" ]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 15s
+    restart: unless-stopped
+    networks:
+      - naseej-network
+
+networks:
+  naseej-network:
+    driver: bridge
