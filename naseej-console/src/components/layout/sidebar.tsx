@@ -18,6 +18,7 @@ import {
     TestTube,
     Zap,
     Settings,
+    GitBranch,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
     { href: "/dashboard", icon: LayoutDashboard, labelKey: "dashboard" },
+    { href: "/design", icon: GitBranch, labelKey: "design" },
     { href: "/routes", icon: Route, labelKey: "routes", badge: 3 },
     { href: "/transformations", icon: Workflow, labelKey: "transformations", badge: 1 },
     { href: "/schemas", icon: FileJson, labelKey: "schemas" },
