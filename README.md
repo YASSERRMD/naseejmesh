@@ -2,83 +2,86 @@
 
 **AI-Driven API Gateway for Enterprise Integration**
 
-A high-performance, multi-protocol API Gateway built in Rust that uses AI to generate and deploy integration logic through natural language.
+A high-performance, multi-protocol API Gateway built in Rust. NaseejMesh uses AI to generate and deploy integration logic through natural language, with enterprise security and distributed clustering built-in.
 
 [![Rust](https://img.shields.io/badge/rust-1.75%2B-orange)](https://www.rust-lang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-passing-brightgreen)]()
+
+---
 
 ## ✨ Features
 
-### 🚀 Zero-Copy Nucleus (Phase 1)
-- **Hyper 1.0** HTTP/1.1 & HTTP/2 auto-negotiation
-- **Embedded SurrealDB** with RocksDB backend
-- **Live Query** subscriptions for hot reload
-- **ArcSwap** wait-free routing table updates
-
-### 🔌 Polyglot Protocol Fabric (Phase 2)
-- **MQTT** - IoT sensor integration
+### Multi-Protocol Support
+- **HTTP/1.1 & HTTP/2** - Auto-negotiation with Hyper 1.0
+- **MQTT** - IoT sensor integration with topic routing
 - **gRPC** - JSON ↔ Protobuf transcoding
 - **SOAP** - XML ↔ JSON streaming conversion
-- **OpenTelemetry** distributed tracing
 
-### 🧠 Cognitive Control Plane (Phase 3)
-- **AI Architect** - Natural language route configuration
-- **Rhai Scripting** - Safe embedded transformations
-- **Schema Ingestion** - OpenAPI parsing for RAG
-- **MCP Protocol** - JSON-RPC for external AI clients
+### AI-Powered Configuration
+- **Natural Language Routing** - Describe integrations in plain English
+- **Rhai Scripting** - Safe embedded data transformations
+- **Schema Learning** - Ingest OpenAPI specs for RAG
+- **MCP Protocol** - JSON-RPC interface for AI clients
 
-### 🎨 Visual Control Plane (Phase 4)
-- **React Flow** - Node-based flow visualization
-- **Mantine UI** - RTL-ready component library
-- **Dry Run API** - Test transformations before deploy
-- **SSE Streaming** - Real-time AI responses
+### Visual Control Plane
+- **React Flow Canvas** - Node-based flow visualization
+- **Dry Run Testing** - Test scripts before deployment
+- **Real-time Streaming** - SSE for live updates
+
+### Enterprise Security
+- **Web Application Firewall** - SQL injection, XSS, path traversal detection
+- **JWT Authentication** - HS256/RS256 with local caching
+- **Token Bucket Rate Limiting** - Per-client with burst support
+- **Usage Metering** - Async tracking without blocking requests
+
+### Performance
+- **Zero-Copy I/O** - Memory-safe without garbage collection
+- **Live Configuration** - Hot reload via SurrealDB Live Query
+- **Wait-Free Routing** - ArcSwap for lock-free updates
+- **Sub-millisecond Latency** - Optimized for high throughput
+
+---
 
 ## 🏗️ Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                        Naseej Console                           │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌───────────────┐   │
-│  │   React Flow    │  │    AI Chat      │  │   Route Mgmt  │   │
-│  │   Canvas        │  │    Panel        │  │   Dashboard   │   │
-│  └────────┬────────┘  └────────┬────────┘  └───────┬───────┘   │
-└───────────┴───────────────────┬────────────────────┴───────────┘
-                                │ REST/SSE
-┌───────────────────────────────┴────────────────────────────────┐
-│                     naseej-console (Axum)                       │
-│  ┌─────────────┐  ┌──────────────┐  ┌────────────────────────┐ │
-│  │  Simulate   │  │   Validate   │  │      AI Architect      │ │
-│  │    API      │  │     API      │  │   (Rig + VectorStore)  │ │
-│  └──────┬──────┘  └──────┬───────┘  └───────────┬────────────┘ │
-└─────────┴────────────────┴──────────────────────┴──────────────┘
-                                │
-┌───────────────────────────────┴────────────────────────────────┐
+│                      Naseej Console (UI)                        │
+│         React Flow  │  AI Chat  │  Route Management             │
+└────────────────────────────┬────────────────────────────────────┘
+                             │ REST/SSE
+┌────────────────────────────┴────────────────────────────────────┐
+│                    naseej-console (Axum API)                    │
+│      /api/simulate  │  /api/validate  │  /api/chat              │
+└────────────────────────────┬────────────────────────────────────┘
+                             │
+┌────────────────────────────┴────────────────────────────────────┐
 │                     naseejmesh-gateway                          │
-│  ┌─────────────┐  ┌──────────────┐  ┌────────────────────────┐ │
-│  │   Hyper     │  │   ArcSwap    │  │      SurrealDB         │ │
-│  │  HTTP/1+2   │◄─│  RouterMap   │◄─│   Live Query + KV      │ │
-│  └──────┬──────┘  └──────────────┘  └────────────────────────┘ │
-│  ┌──────┴──────────────────────────────────────────────────┐   │
-│  │          Protocol Adapters (MQTT | gRPC | SOAP)          │   │
+│  ┌──────────────┐  ┌──────────────┐  ┌────────────────────────┐ │
+│  │   Security   │  │   Routing    │  │      SurrealDB         │ │
+│  │  WAF + Auth  │  │   ArcSwap    │  │   Config + Live Query  │ │
+│  └──────────────┘  └──────────────┘  └────────────────────────┘ │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │        Protocol Adapters (HTTP │ MQTT │ gRPC │ SOAP)     │   │
 │  └──────────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-## 📦 Project Structure
+---
 
-```
-naseejmesh/
-├── crates/
-│   ├── gateway-core/        # HTTP, routing, Rhai transforms
-│   ├── surreal-config/      # SurrealDB, Live Query watcher
-│   ├── protocol-adapters/   # MQTT, gRPC, SOAP, OpenTelemetry
-│   ├── cognitive-core/      # AI Architect, MCP, VectorStore
-│   ├── naseej-console/      # Axum API server for frontend
-│   └── naseejmesh-server/   # Main gateway binary
-├── console/                 # Next.js React Flow dashboard
-└── Cargo.toml               # Workspace root
-```
+## 📦 Crates
+
+| Crate | Description |
+|-------|-------------|
+| `gateway-core` | HTTP routing, body handling, Rhai transforms |
+| `surreal-config` | SurrealDB integration, Live Query watcher |
+| `protocol-adapters` | MQTT, gRPC, SOAP, OpenTelemetry |
+| `cognitive-core` | AI Architect, MCP server, VectorStore |
+| `naseej-console` | Axum API server for frontend |
+| `naseej-security` | WAF, JWT auth, rate limiting, metering |
+| `naseejmesh-server` | Main gateway binary |
+
+---
 
 ## 🚀 Quick Start
 
@@ -87,20 +90,20 @@ naseejmesh/
 - **Rust 1.75+**
 - **Node.js 18+** (for console)
 
-### Build & Run Gateway
+### Build & Run
 
 ```bash
-# Build everything
+# Build all crates
 cargo build --release
 
-# Start gateway (embedded SurrealDB)
+# Start gateway with embedded SurrealDB
 DEV_MODE=1 cargo run --release --bin naseejmesh-gateway
 
-# Start API server for console
+# Start console API server (port 3001)
 cargo run --bin naseej-console
 ```
 
-### Start Console
+### Start Console UI
 
 ```bash
 cd console
@@ -116,6 +119,93 @@ npm run dev
 | `PORT` | `8080` | Gateway HTTP port |
 | `DEV_MODE` | unset | Seed default routes |
 | `SURREAL_EMBEDDED` | `true` | Use embedded DB |
+| `SURREAL_URL` | - | Remote SurrealDB URL |
+
+---
+
+## 🔧 API Reference
+
+### Gateway Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/_gateway/health` | GET | Liveness probe |
+| `/_gateway/ready` | GET | Readiness probe |
+
+### Console API
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/routes` | GET | List all routes |
+| `/api/routes` | POST | Create route |
+| `/api/simulate` | POST | Dry-run transformation |
+| `/api/validate` | POST | Validate Rhai script |
+| `/api/chat` | POST | Chat with AI Architect |
+| `/api/chat/stream` | GET | SSE streaming |
+| `/api/state` | GET | Gateway state |
+
+---
+
+## 📝 Rhai Scripting
+
+Built-in transformation functions:
+
+```rhai
+// JSON handling
+let data = parse_json(input);
+data["processed"] = true;
+output = to_json(data);
+
+// Temperature conversion
+data["temp_f"] = celsius_to_fahrenheit(data["temp"]);
+
+// XML wrapping
+output = wrap_xml("temperature", "25");
+
+// Utilities
+let id = uuid();
+let ts = timestamp_ms();
+let iso = now_iso();
+
+// Logging
+log("Processing request");
+```
+
+---
+
+## 🛡️ Security Features
+
+### WAF (Web Application Firewall)
+
+Detects and blocks:
+- SQL Injection (`SELECT`, `UNION`, `DROP`)
+- Cross-Site Scripting (`<script>`, `javascript:`)
+- Path Traversal (`../`, `/etc/passwd`)
+- Command Injection (`|`, `;`, backticks)
+
+### JWT Authentication
+
+```rust
+// Validate tokens with caching
+let claims = validator.validate(token).await?;
+
+// Check scopes
+if JwtValidator::has_scope(&claims, "write:routes") {
+    // Authorized
+}
+```
+
+### Rate Limiting
+
+```rust
+// Token bucket per client
+let result = limiter.check("client_id");
+if !result.allowed {
+    // Return 429 with retry_after_ms
+}
+```
+
+---
 
 ## 🧪 Testing
 
@@ -123,66 +213,19 @@ npm run dev
 # Run all tests
 cargo test --all
 
-# Specific crate
+# Test specific crate
+cargo test -p naseej-security
 cargo test -p cognitive-core
-cargo test -p gateway-core
 ```
 
-## 🔧 API Endpoints
-
-### Gateway (`localhost:8080`)
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/_gateway/health` | GET | Health check |
-| `/_gateway/ready` | GET | Readiness probe |
-
-### Console API (`localhost:3001`)
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/routes` | GET/POST | Manage routes |
-| `/api/simulate` | POST | Dry-run transformation |
-| `/api/validate` | POST | Validate Rhai script |
-| `/api/chat` | POST | Chat with AI Architect |
-| `/api/chat/stream` | GET | SSE streaming |
-
-## 📝 Example: Create Integration
-
-Use the AI Chat to create integrations naturally:
-
-```
-"Create a route that listens on MQTT topic 'sensors/temp' 
-and forwards to http://api.example.com/readings, 
-converting Celsius to Fahrenheit."
-```
-
-The AI generates:
-1. **Route config** (MQTT → HTTP)
-2. **Rhai script** for transformation
-3. **Deploys** via Live Query
-
-## 🛠️ Rhai Scripting
-
-Built-in helper functions:
-
-```rhai
-// JSON handling
-let data = parse_json(input);
-output = to_json(data);
-
-// Temperature conversion
-data["temp_f"] = celsius_to_fahrenheit(data["temp"]);
-
-// Utilities
-let id = uuid();
-let ts = timestamp_ms();
-let iso = now_iso();
-
-// XML wrapping
-output = wrap_xml("temperature", "25");
-```
+---
 
 ## 📄 License
 
 MIT License - see [LICENSE](LICENSE)
+
+---
+
+## 🤝 Contributing
+
+Contributions welcome! Please read our contributing guidelines before submitting PRs.
