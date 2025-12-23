@@ -1,7 +1,32 @@
 version: "3.8"
 
 services:
+  # ==========================================================================
+  # SurrealDB Database
+  # ==========================================================================
+  surrealdb:
+    image: surrealdb/surrealdb:latest
+    container_name: naseej-db
+    command: start --log trace --user root --pass naseej123 file:/data/naseej.db
+    ports:
+      - "8000:8000"
+    volumes:
+      - surrealdb_data:/data
+    environment:
+      - SURREAL_LOG=trace
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - naseej-network
+
+  # ==========================================================================
   # Rust Backend API
+  # ==========================================================================
   backend:
     build:
       context: .
@@ -13,6 +38,14 @@ services:
       - RUST_LOG=info
       - HOST=0.0.0.0
       - PORT=3001
+      - SURREAL_URL=ws://surrealdb:8000
+      - SURREAL_USER=root
+      - SURREAL_PASS=naseej123
+      - SURREAL_NS=naseej
+      - SURREAL_DB=console
+    depends_on:
+      surrealdb:
+        condition: service_healthy
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:3001/health" ]
       interval: 30s
@@ -23,7 +56,9 @@ services:
     networks:
       - naseej-network
 
+  # ==========================================================================
   # Next.js Frontend
+  # ==========================================================================
   frontend:
     build:
       context: .
@@ -33,7 +68,7 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=http://backend:3001
+      - NEXT_PUBLIC_API_URL=http://localhost:3001
     depends_on:
       backend:
         condition: service_healthy
@@ -47,6 +82,16 @@ services:
     networks:
       - naseej-network
 
+# =============================================================================
+# Volumes
+# =============================================================================
+volumes:
+  surrealdb_data:
+    driver: local
+
+# =============================================================================
+# Networks
+# =============================================================================
 networks:
   naseej-network:
     driver: bridge
