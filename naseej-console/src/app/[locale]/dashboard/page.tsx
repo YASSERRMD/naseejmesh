@@ -2,6 +2,7 @@
 
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
+import { CommandPalette } from "@/components/command-palette";
 import { useSidebarStore } from "@/stores/ui-store";
 import { cn } from "@/lib/utils";
 import { use } from "react";
@@ -22,6 +23,7 @@ export default function DashboardPage({ params }: DashboardPageProps) {
     return (
         <div className="min-h-screen bg-background">
             <Sidebar locale={locale} />
+            <CommandPalette locale={locale} />
             <div
                 className={cn(
                     "transition-all duration-300",
