@@ -1,31 +1,47 @@
 # NaseejMesh API Gateway
 
-A high-performance API Gateway built in Rust with zero-downtime configuration updates.
+A high-performance, AI-driven API Gateway built in Rust with zero-downtime configuration updates and multi-protocol support.
 
 ## Features
 
+### Phase 1: Zero-Copy Nucleus
 - **High-Performance HTTP Core**: Built on Hyper 1.0 with automatic HTTP/1.1 and HTTP/2 negotiation
 - **Embedded Configuration**: SurrealDB with RocksDB backend - no external database dependencies
 - **Hot Reload**: Live Query subscriptions for real-time configuration updates
 - **Zero-Lock Reads**: ArcSwap pattern for wait-free routing table access
 - **Memory Safe**: Zero-copy body handling with strict size limits
 
+### Phase 2: Polyglot Protocol Fabric
+- **MQTT Adapter**: IoT device integration with topic-based routing
+- **gRPC Adapter**: Dynamic JSON ↔ Protobuf transcoding with prost-reflect
+- **SOAP Adapter**: Streaming XML-to-JSON conversion with quick-xml
+- **OpenTelemetry**: Distributed tracing across all protocols
+
+### Phase 3: Cognitive Control Plane
+- **AI Architect**: Natural language integration design using Rig
+- **Rhai Scripting**: Safe embedded scripting for data transformations
+- **Schema Ingestion**: OpenAPI parsing for RAG knowledge base
+- **MCP Protocol**: JSON-RPC interface for external AI tools
+
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    NaseejMesh Gateway                        │
-├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────┐    ┌──────────────┐    ┌───────────────┐  │
-│  │   Hyper     │    │   ArcSwap    │    │  SurrealDB    │  │
-│  │  HTTP/1+2   │◄──►│  RouterMap   │◄───│  Live Query   │  │
-│  │   Server    │    │  (wait-free) │    │   Watcher     │  │
-│  └─────────────┘    └──────────────┘    └───────────────┘  │
-│         ▲                                       ▲          │
-│         │                                       │          │
-│    TCP Accept                              RocksDB         │
-│      Loop                                  Storage         │
-└─────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────┐
+│                       NaseejMesh Gateway                            │
+├────────────────────────────────────────────────────────────────────┤
+│  ┌─────────────┐    ┌──────────────┐    ┌────────────────────────┐│
+│  │   Hyper     │    │   ArcSwap    │    │      SurrealDB         ││
+│  │  HTTP/1+2   │◄──►│  RouterMap   │◄───│  Live Query + Vectors  ││
+│  │   Server    │    │  (wait-free) │    │                        ││
+│  └─────────────┘    └──────────────┘    └────────────────────────┘│
+│         ▲                                         ▲                │
+│  ┌──────┴──────┐                          ┌───────┴───────┐       │
+│  │  Protocol   │                          │   Cognitive   │       │
+│  │  Adapters   │                          │     Core      │       │
+│  │ MQTT|gRPC|  │                          │  AI Architect │       │
+│  │   SOAP      │                          │  Rhai Engine  │       │
+│  └─────────────┘                          └───────────────┘       │
+└────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Quick Start
@@ -71,6 +87,16 @@ PORT=3000 cargo run --bin naseejmesh-gateway
 | `SURREAL_USER` | `root` | Username for remote SurrealDB |
 | `SURREAL_PASS` | `root` | Password for remote SurrealDB |
 
+## Crates
+
+| Crate | Description |
+|-------|-------------|
+| `gateway-core` | HTTP logic, routing, body handling |
+| `surreal-config` | SurrealDB integration, Live Query watcher |
+| `protocol-adapters` | MQTT, gRPC, SOAP adapters with OpenTelemetry |
+| `cognitive-core` | AI Architect, Rhai scripting, MCP protocol |
+| `naseejmesh-server` | Main binary entry point |
+
 ## API Endpoints
 
 ### Gateway Internal
@@ -82,7 +108,7 @@ PORT=3000 cargo run --bin naseejmesh-gateway
 
 ### Routing
 
-Routes are configured dynamically via SurrealDB. Example route structure:
+Routes are configured dynamically via SurrealDB:
 
 ```json
 {
@@ -97,48 +123,43 @@ Routes are configured dynamically via SurrealDB. Example route structure:
 }
 ```
 
-## Testing with Docker SurrealDB
+## AI Architect (Phase 3)
 
-For development and testing, you can use SurrealDB in Docker:
+Use natural language to create integrations:
+
+```
+"Create a route that listens on MQTT topic 'sensors/+' and 
+forwards the payload to http://api.example.com/readings, 
+transforming the timestamp to UTC."
+```
+
+### Available Tools
+
+- **deploy_route**: Deploy integration routes
+- **lookup_schema**: Search API knowledge base
+- **validate_rhai**: Validate transformation scripts
+
+### Rhai Scripting
+
+```rhai
+// Transform temperature from Celsius to Fahrenheit
+payload["temp_f"] = payload["temp"] * 9 / 5 + 32;
+payload["converted_at"] = now_utc();
+```
+
+Built-in functions: `parse_json()`, `to_json()`, `uuid()`, `timestamp()`, `now_utc()`, `log_info()`
+
+## Testing
 
 ```bash
-# Start SurrealDB
-docker run -d --name surrealdb -p 8000:8000 \
-  surrealdb/surrealdb:latest start \
-  --user root --pass root
+# Run all tests
+cargo test
 
-# Configure gateway to use remote SurrealDB
-SURREAL_EMBEDDED=false \
-SURREAL_URL=ws://localhost:8000 \
-cargo run --bin naseejmesh-gateway
-```
-
-## Project Structure
-
-```
-naseejmesh/
-├── Cargo.toml              # Workspace root
-├── src/
-│   └── bin/
-│       └── server.rs       # Main entry point
-├── crates/
-│   ├── gateway-core/       # HTTP logic (isolated from DB)
-│   │   └── src/
-│   │       ├── lib.rs
-│   │       ├── body.rs     # Secure body handling
-│   │       ├── config.rs   # Route types
-│   │       ├── error.rs    # Error classification
-│   │       ├── executor.rs # HTTP/2 executor
-│   │       ├── handler.rs  # Request handler
-│   │       └── router.rs   # Path matching
-│   └── surreal-config/     # Database layer
-│       └── src/
-│           ├── lib.rs
-│           ├── db.rs       # DB initialization
-│           ├── error.rs    # Config errors
-│           ├── schema.rs   # CRUD operations
-│           └── watcher.rs  # Live Query watcher
-└── docker-compose.yml      # Development environment
+# Run specific crate tests
+cargo test -p cognitive-core
+cargo test -p protocol-adapters
+cargo test -p gateway-core
+cargo test -p surreal-config
 ```
 
 ## Performance Targets
@@ -147,26 +168,8 @@ naseejmesh/
 |--------|--------|-------|
 | Throughput | 100k+ RPS | On 16 vCPU commodity hardware |
 | Latency (p99) | < 1ms | Gateway "tax" only |
-| Memory | Bounded | Zero-copy body handling, limited request sizes |
-| Config Reload | < 10ms | Live Query + ArcSwap atomic swap |
-
-## Phase 1 Scope
-
-This is Phase 1 of the gateway implementation, focusing on:
-
-- ✅ Hyper 1.0 HTTP server with auto HTTP/1+2
-- ✅ Embedded SurrealDB with RocksDB
-- ✅ Live Query configuration subscription
-- ✅ ArcSwap wait-free routing
-- ✅ Secure body handling with size limits
-- ✅ Route matching (exact, prefix, wildcard)
-
-### Phase 2 (Planned)
-
-- Upstream HTTP client with connection pooling
-- Load balancing algorithms
-- Health checks for upstreams
-- Distributed tracing integration
+| Memory | Bounded | Zero-copy body handling |
+| Config Reload | < 10ms | Live Query + ArcSwap |
 
 ## License
 

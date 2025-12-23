@@ -3,6 +3,7 @@ members = [
     "crates/gateway-core",
     "crates/surreal-config",
     "crates/protocol-adapters",
+    "crates/cognitive-core",
     "crates/naseejmesh-server"
 ]
 resolver = "2"
@@ -59,11 +60,19 @@ rumqttc = "0.24"
 # XML
 quick-xml = { version = "0.37", features = ["serialize"] }
 
+# AI & Scripting
+rig-core = "0.6"
+rhai = { version = "1.21", features = ["sync", "serde"] }
+openapiv3 = "2"
+async-openai = "0.27"
+reqwest = { version = "0.12", features = ["json"] }
+
 # Utilities
 futures = "0.3"
 async-trait = "0.1"
 uuid = { version = "1", features = ["v4"] }
 chrono = { version = "0.4", features = ["serde"] }
+regex = "1"
 
 [profile.release]
 lto = true
