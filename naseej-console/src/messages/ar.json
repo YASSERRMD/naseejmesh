@@ -10,7 +10,8 @@
         "transformations": "التحويلات",
         "schemas": "مخططات API",
         "security": "الأمان",
-        "monitoring": "المراقبة"
+        "monitoring": "المراقبة",
+        "settings": "الإعدادات"
     },
     "sidebar": {
         "collapse": "طي الشريط الجانبي",
