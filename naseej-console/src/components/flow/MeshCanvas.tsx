@@ -7,8 +7,8 @@ import {
     Controls,
     MiniMap,
     BackgroundVariant,
-    Panel,
     useReactFlow,
+    ReactFlowProvider,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { cn } from "@/lib/utils";
@@ -33,7 +33,7 @@ interface MeshCanvasProps {
     locale?: string;
 }
 
-export function MeshCanvas({ locale = "en" }: MeshCanvasProps) {
+function MeshCanvasInner({ locale = "en" }: MeshCanvasProps) {
     const isRTL = locale === "ar";
     const { fitView } = useReactFlow();
 
@@ -68,10 +68,10 @@ export function MeshCanvas({ locale = "en" }: MeshCanvasProps) {
     return (
         <div className="w-full h-full bg-background">
             <ReactFlow
-                nodes={nodes}
-                edges={edges}
-                onNodesChange={onNodesChange}
-                onEdgesChange={onEdgesChange}
+                nodes={nodes as any}
+                edges={edges as any}
+                onNodesChange={onNodesChange as any}
+                onEdgesChange={onEdgesChange as any}
                 onConnect={onConnect}
                 onNodeClick={handleNodeClick}
                 onPaneClick={handlePaneClick}
@@ -128,13 +128,14 @@ export function MeshCanvas({ locale = "en" }: MeshCanvasProps) {
     );
 }
 
-// Wrapper with ReactFlowProvider
-import { ReactFlowProvider } from "@xyflow/react";
+export function MeshCanvas(props: MeshCanvasProps) {
+    return <MeshCanvasInner {...props} />;
+}
 
 export function MeshCanvasWithProvider(props: MeshCanvasProps) {
     return (
         <ReactFlowProvider>
-            <MeshCanvas {...props} />
+            <MeshCanvasInner {...props} />
         </ReactFlowProvider>
     );
 }

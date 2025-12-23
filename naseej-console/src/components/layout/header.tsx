@@ -8,6 +8,7 @@ import { Search, Sun, Moon, Languages, Command } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useThemeStore } from "@/stores/ui-store";
+import { ConnectionStatus } from "@/components/connection-status";
 
 interface HeaderProps {
     locale: string;
@@ -68,6 +69,9 @@ export function Header({ locale }: HeaderProps) {
 
                 {/* Actions */}
                 <div className="flex items-center gap-2">
+                    {/* Connection Status */}
+                    <ConnectionStatus />
+
                     {/* Search Trigger */}
                     <Button
                         variant="outline"

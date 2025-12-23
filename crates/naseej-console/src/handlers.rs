@@ -1,7 +1,7 @@
 //! Request handlers for the console API
 
 use axum::{
-    extract::State,
+    extract::{Query, State},
     http::StatusCode,
     response::{sse::Event, Sse},
     Json,
@@ -15,7 +15,7 @@ use tracing::{error, info};
 
 use gateway_core::{simulate, validate_script};
 
-use crate::state::{AppState, RouteInfo};
+use crate::state::{AppState, RouteInfo, TransformationInfo, SecurityEvent, SchemaInfo};
 
 // ============================================================================
 // Request/Response Types
@@ -76,9 +76,86 @@ pub struct GatewayState {
     pub version: String,
 }
 
+/// Gateway status response matching frontend types
+#[derive(Debug, Serialize)]
+pub struct GatewayStatus {
+    pub healthy: bool,
+    pub version: String,
+    pub uptime: u64,
+    pub routes: usize,
+    pub requests: RequestMetrics,
+}
+
+#[derive(Debug, Serialize)]
+pub struct RequestMetrics {
+    pub total: u64,
+    #[serde(rename = "perSecond")]
+    pub per_second: u64,
+    #[serde(rename = "avgLatencyMs")]
+    pub avg_latency_ms: u64,
+    #[serde(rename = "errorRate")]
+    pub error_rate: f64,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct SecurityEventsQuery {
+    #[serde(default = "default_limit")]
+    pub limit: usize,
+}
+
+fn default_limit() -> usize {
+    50
+}
+
 // ============================================================================
 // Handlers
 // ============================================================================
+
+/// Gateway status endpoint - /api/status
+pub async fn get_status(
+    State(state): State<Arc<AppState>>,
+) -> Json<GatewayStatus> {
+    let routes = state.routes.read().await;
+    let total_requests: u64 = routes.iter().map(|r| r.requests).sum();
+    let avg_latency: u64 = if routes.is_empty() {
+        0
+    } else {
+        routes.iter().map(|r| r.avg_latency_ms).sum::<u64>() / routes.len() as u64
+    };
+
+    Json(GatewayStatus {
+        healthy: true,
+        version: env!("CARGO_PKG_VERSION").to_string(),
+        uptime: state.uptime_seconds(),
+        routes: routes.len(),
+        requests: RequestMetrics {
+            total: total_requests,
+            per_second: 127, // Mock value - would come from metrics collector
+            avg_latency_ms: avg_latency,
+            error_rate: 0.02,
+        },
+    })
+}
+
+/// Metrics endpoint - /api/metrics
+pub async fn get_metrics(
+    State(state): State<Arc<AppState>>,
+) -> Json<RequestMetrics> {
+    let routes = state.routes.read().await;
+    let total_requests: u64 = routes.iter().map(|r| r.requests).sum();
+    let avg_latency: u64 = if routes.is_empty() {
+        0
+    } else {
+        routes.iter().map(|r| r.avg_latency_ms).sum::<u64>() / routes.len() as u64
+    };
+
+    Json(RequestMetrics {
+        total: total_requests,
+        per_second: 127,
+        avg_latency_ms: avg_latency,
+        error_rate: 0.02,
+    })
+}
 
 /// List all routes
 pub async fn list_routes(
@@ -108,6 +185,8 @@ pub async fn create_route(
         transform_script: request.transform_script,
         active: true,
         created_at: chrono::Utc::now().to_rfc3339(),
+        requests: 0,
+        avg_latency_ms: 0,
     };
 
     let mut routes = state.routes.write().await;
@@ -115,6 +194,32 @@ pub async fn create_route(
 
     info!(route_id = %route.id, "Created new route");
     Ok(Json(route))
+}
+
+/// List transformations - /api/transformations
+pub async fn list_transformations(
+    State(state): State<Arc<AppState>>,
+) -> Json<Vec<TransformationInfo>> {
+    let transformations = state.transformations.read().await;
+    Json(transformations.clone())
+}
+
+/// List security events - /api/security/events
+pub async fn list_security_events(
+    State(state): State<Arc<AppState>>,
+    Query(params): Query<SecurityEventsQuery>,
+) -> Json<Vec<SecurityEvent>> {
+    let events = state.security_events.read().await;
+    let limited: Vec<_> = events.iter().take(params.limit).cloned().collect();
+    Json(limited)
+}
+
+/// List schemas - /api/schemas
+pub async fn list_schemas(
+    State(state): State<Arc<AppState>>,
+) -> Json<Vec<SchemaInfo>> {
+    let schemas = state.schemas.read().await;
+    Json(schemas.clone())
 }
 
 /// Simulate a transformation (dry-run)
@@ -198,7 +303,7 @@ pub async fn get_state(
     
     Json(GatewayState {
         routes: routes.clone(),
-        uptime_seconds: 0, // Would track real uptime
+        uptime_seconds: state.uptime_seconds(),
         version: env!("CARGO_PKG_VERSION").to_string(),
     })
 }
