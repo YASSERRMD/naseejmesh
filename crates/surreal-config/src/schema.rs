@@ -4,7 +4,7 @@
 //! with operations that work with both embedded and remote SurrealDB.
 
 use gateway_core::config::Route;
-use surrealdb::engine::local::Db;
+use surrealdb::Connection;
 use surrealdb::Surreal;
 
 use crate::error::ConfigError;
@@ -22,7 +22,7 @@ const ROUTES_TABLE: &str = "routes";
 /// # Returns
 ///
 /// The created route with any server-generated fields
-pub async fn create_route(db: &Surreal<Db>, route: Route) -> Result<Route, ConfigError> {
+pub async fn create_route<C: Connection>(db: &Surreal<C>, route: Route) -> Result<Route, ConfigError> {
     // Validate route
     validate_route(&route)?;
 
@@ -38,19 +38,19 @@ pub async fn create_route(db: &Surreal<Db>, route: Route) -> Result<Route, Confi
 }
 
 /// Get a specific route by ID.
-pub async fn get_route(db: &Surreal<Db>, id: &str) -> Result<Option<Route>, ConfigError> {
+pub async fn get_route<C: Connection>(db: &Surreal<C>, id: &str) -> Result<Option<Route>, ConfigError> {
     let route: Option<Route> = db.select((ROUTES_TABLE, id)).await?;
     Ok(route)
 }
 
 /// Get all routes from the database.
-pub async fn get_all_routes(db: &Surreal<Db>) -> Result<Vec<Route>, ConfigError> {
+pub async fn get_all_routes<C: Connection>(db: &Surreal<C>) -> Result<Vec<Route>, ConfigError> {
     let routes: Vec<Route> = db.select(ROUTES_TABLE).await?;
     Ok(routes)
 }
 
 /// Update an existing route.
-pub async fn update_route(db: &Surreal<Db>, route: Route) -> Result<Route, ConfigError> {
+pub async fn update_route<C: Connection>(db: &Surreal<C>, route: Route) -> Result<Route, ConfigError> {
     // Validate route
     validate_route(&route)?;
 
@@ -66,7 +66,7 @@ pub async fn update_route(db: &Surreal<Db>, route: Route) -> Result<Route, Confi
 }
 
 /// Delete a route by ID.
-pub async fn delete_route(db: &Surreal<Db>, id: &str) -> Result<(), ConfigError> {
+pub async fn delete_route<C: Connection>(db: &Surreal<C>, id: &str) -> Result<(), ConfigError> {
     tracing::debug!(id = %id, "Deleting route");
 
     let deleted: Option<Route> = db.delete((ROUTES_TABLE, id)).await?;
@@ -79,13 +79,13 @@ pub async fn delete_route(db: &Surreal<Db>, id: &str) -> Result<(), ConfigError>
 }
 
 /// Get the count of active routes.
-pub async fn count_active_routes(db: &Surreal<Db>) -> Result<usize, ConfigError> {
+pub async fn count_active_routes<C: Connection>(db: &Surreal<C>) -> Result<usize, ConfigError> {
     let routes: Vec<Route> = db.select(ROUTES_TABLE).await?;
     Ok(routes.iter().filter(|r| r.active).count())
 }
 
 /// Bulk insert routes (useful for initial seeding).
-pub async fn bulk_create_routes(db: &Surreal<Db>, routes: Vec<Route>) -> Result<usize, ConfigError> {
+pub async fn bulk_create_routes<C: Connection>(db: &Surreal<C>, routes: Vec<Route>) -> Result<usize, ConfigError> {
     let mut created = 0;
 
     for route in routes {
@@ -150,7 +150,7 @@ fn default_route(id: &str, path: &str, upstream: &str, description: &str) -> Rou
 }
 
 /// Seed default routes for development/testing.
-pub async fn seed_default_routes(db: &Surreal<Db>) -> Result<(), ConfigError> {
+pub async fn seed_default_routes<C: Connection>(db: &Surreal<C>) -> Result<(), ConfigError> {
     let defaults = vec![
         Route::new("health", "/_gateway/health", "http://localhost:8080"),
         Route::new("ready", "/_gateway/ready", "http://localhost:8080"),

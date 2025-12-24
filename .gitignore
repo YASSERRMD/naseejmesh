@@ -19,5 +19,6 @@ Thumbs.db
 *.log
 
 # Environment files with secrets
+.env
 .env.local
 .env.production

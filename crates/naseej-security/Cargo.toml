@@ -42,6 +42,10 @@ regex = { workspace = true }
 chrono = { workspace = true }
 dashmap = { workspace = true }
 parking_lot = { workspace = true }
+bcrypt = "0.17.1"
+rand.workspace = true
+hex = "0.4.3"
+subtle = "2.6.1"
 
 [dev-dependencies]
 tokio = { workspace = true }

@@ -245,6 +245,58 @@ impl JwtValidator {
     }
 }
 
+/// JWT Issuer for generating tokens
+pub struct JwtIssuer {
+    encoding_key: jsonwebtoken::EncodingKey,
+    algorithm: Algorithm,
+    issuer: String,
+    audience: String,
+    expiry_secs: u64,
+}
+
+impl JwtIssuer {
+    pub fn new(config: AuthConfig) -> Result<Self, AuthError> {
+        let encoding_key = jsonwebtoken::EncodingKey::from_secret(config.secret_or_jwks.as_bytes());
+        
+        let algorithm = match config.algorithm.as_str() {
+            "HS256" => Algorithm::HS256,
+            _ => Algorithm::HS256, // Default to HS256 for now as RS256 requires private key
+        };
+
+        Ok(Self {
+            encoding_key,
+            algorithm,
+            issuer: config.issuers.first().cloned().unwrap_or_else(|| "naseej-gateway".to_string()),
+            audience: config.audiences.first().cloned().unwrap_or_else(|| "naseej-console".to_string()),
+            expiry_secs: 3600, // 1 hour default
+        })
+    }
+
+    pub fn issue_token(&self, sub: &str, roles: Vec<String>) -> Result<(String, u64), AuthError> {
+        let now = chrono::Utc::now().timestamp() as u64;
+        let exp = now + self.expiry_secs;
+
+        let mut claims = Claims {
+            sub: sub.to_string(),
+            iss: Some(self.issuer.clone()),
+            aud: Some(self.audience.clone()),
+            exp,
+            iat: Some(now),
+            nbf: Some(now),
+            extra: serde_json::Map::new(),
+        };
+
+        // Add roles to claims
+        claims.extra.insert("roles".to_string(), serde_json::json!(roles));
+
+        let header = jsonwebtoken::Header::new(self.algorithm);
+        let token = jsonwebtoken::encode(&header, &claims, &self.encoding_key)
+            .map_err(|e| AuthError::TokenInvalid(e.to_string()))?;
+
+        Ok((token, exp))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

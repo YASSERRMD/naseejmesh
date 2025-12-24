@@ -4,6 +4,8 @@ use cognitive_core::{ArchitectConfig, NaseejArchitect, RhaiEngine, VectorStore};
 use std::sync::Arc;
 use std::time::Instant;
 use tokio::sync::RwLock;
+use surrealdb::Surreal;
+use surrealdb::engine::remote::ws::Client;
 
 /// Shared application state
 pub struct AppState {
@@ -21,6 +23,9 @@ pub struct AppState {
 
     /// API Schemas
     pub schemas: RwLock<Vec<SchemaInfo>>,
+
+    /// Persistent Database Connection
+    pub db: Arc<Surreal<Client>>,
 
     /// Server start time for uptime calculation
     pub start_time: Instant,
@@ -86,7 +91,7 @@ pub struct SchemaInfo {
 
 impl AppState {
     /// Create new application state with demo data
-    pub fn new() -> Self {
+    pub fn new(db: Arc<Surreal<Client>>) -> Self {
         let rhai_engine = Arc::new(RhaiEngine::new());
         let vector_store = Arc::new(RwLock::new(VectorStore::new()));
         let config = ArchitectConfig::default();
@@ -217,6 +222,7 @@ impl AppState {
             transformations: RwLock::new(transformations),
             security_events: RwLock::new(security_events),
             schemas: RwLock::new(schemas),
+            db,
             start_time: Instant::now(),
         }
     }
@@ -227,8 +233,4 @@ impl AppState {
     }
 }
 
-impl Default for AppState {
-    fn default() -> Self {
-        Self::new()
-    }
-}
+// impl Default for AppState removal since it requires args now
