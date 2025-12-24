@@ -5,7 +5,7 @@ use std::sync::Arc;
 use std::time::Instant;
 use tokio::sync::RwLock;
 use surrealdb::Surreal;
-use surrealdb::engine::remote::ws::Client;
+use surreal_config::db::RemoteDb;
 
 /// Shared application state
 pub struct AppState {
@@ -25,7 +25,7 @@ pub struct AppState {
     pub schemas: RwLock<Vec<SchemaInfo>>,
 
     /// Persistent Database Connection
-    pub db: Arc<Surreal<Client>>,
+    pub db: Arc<RemoteDb>,
 
     /// Server start time for uptime calculation
     pub start_time: Instant,
@@ -91,7 +91,7 @@ pub struct SchemaInfo {
 
 impl AppState {
     /// Create new application state with demo data
-    pub fn new(db: Arc<Surreal<Client>>) -> Self {
+    pub fn new(db: Arc<RemoteDb>) -> Self {
         let rhai_engine = Arc::new(RhaiEngine::new());
         let vector_store = Arc::new(RwLock::new(VectorStore::new()));
         let config = ArchitectConfig::default();

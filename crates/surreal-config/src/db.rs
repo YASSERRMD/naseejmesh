@@ -3,7 +3,7 @@
 //! Supports both embedded RocksDB (production) and remote SurrealDB (testing).
 
 use surrealdb::engine::local::RocksDb;
-use surrealdb::engine::remote::ws::{Client, Ws};
+use surrealdb::engine::any::Any;
 use surrealdb::opt::auth::Root;
 use surrealdb::Surreal;
 
@@ -12,8 +12,8 @@ use crate::error::ConfigError;
 /// Database connection type alias for embedded RocksDB
 pub type EmbeddedDb = Surreal<surrealdb::engine::local::Db>;
 
-/// Database connection type alias for remote WebSocket connection
-pub type RemoteDb = Surreal<Client>;
+/// Database connection type alias for remote connection (WS or HTTP)
+pub type RemoteDb = Surreal<Any>;
 
 /// Configuration for database initialization
 #[derive(Debug, Clone)]
@@ -138,28 +138,63 @@ pub async fn init_remote_database(config: &DatabaseConfig) -> Result<RemoteDb, C
         "Connecting to remote SurrealDB"
     );
 
-    let db = Surreal::new::<Ws>(&config.connection)
-        .await
-        .map_err(|e| ConfigError::Database(format!("Failed to connect: {}", e)))?;
+    let mut current_attempt = 0;
+    let max_retries = 10;
+    
+    loop {
+        match surrealdb::engine::any::connect(&config.connection).await {
+            Ok(db) => {
+                // Return explicitly to break loop with db instance
+                // We handle authentication and namespace selection after this block
+                // but we need to assign it to a variable outside or return immediately
+                // To keep the function clean, let's just break the loop with the db
+                
+                // Authenticate if credentials provided
+                if let (Some(user), Some(pass)) = (&config.username, &config.password) {
+                    if let Err(e) = db.signin(Root {
+                        username: user,
+                        password: pass,
+                    }).await {
+                        if current_attempt >= max_retries {
+                            return Err(ConfigError::Database(format!("Authentication failed: {}", e)));
+                        }
+                        tracing::warn!("Authentication failed (attempt {}/{}): {}. Retrying...", current_attempt + 1, max_retries, e);
+                        tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+                        current_attempt += 1;
+                        continue;
+                    }
+                }
 
-    // Authenticate if credentials provided
-    if let (Some(user), Some(pass)) = (&config.username, &config.password) {
-        db.signin(Root {
-            username: user,
-            password: pass,
-        })
-        .await
-        .map_err(|e| ConfigError::Database(format!("Authentication failed: {}", e)))?;
+                // Select namespace and database
+                if let Err(e) = db.use_ns(&config.namespace).use_db(&config.database).await {
+                     if current_attempt >= max_retries {
+                         return Err(ConfigError::Database(format!("Failed to select DB: {}", e)));
+                     }
+                     tracing::warn!("Namespace selection failed: {}. Retrying...", e);
+                     tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+                     current_attempt += 1;
+                     continue;
+                }
+
+                tracing::info!("Connected to remote SurrealDB successfully");
+                return Ok(db);
+            }
+            Err(e) => {
+                current_attempt += 1;
+                if current_attempt > max_retries {
+                    return Err(ConfigError::Database(format!("Failed to connect after {} attempts: {}", max_retries, e)));
+                }
+                
+                let delay = std::time::Duration::from_secs(if current_attempt < 5 { 2 } else { 5 });
+                tracing::warn!(
+                    "Failed to connect to {} (attempt {}/{}): {}. Retrying in {:?}...", 
+                    config.connection, current_attempt, max_retries, e, delay
+                );
+                tokio::time::sleep(delay).await;
+            }
+        }
     }
 
-    // Select namespace and database
-    db.use_ns(&config.namespace)
-        .use_db(&config.database)
-        .await?;
-
-    tracing::info!("Connected to remote SurrealDB successfully");
-
-    Ok(db)
 }
 
 #[cfg(test)]
