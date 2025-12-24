@@ -12,10 +12,14 @@ import {
     Workflow,
     Shield,
     Activity,
+    Brain,         // AI node
+    Plug,          // MCP node
+    GitFork,       // Splitter
+    Merge,         // Aggregator
+    Binary,        // Logic (If/Else)
 } from "lucide-react";
 import type { ServiceNodeData, ServiceType, ServiceStatus } from "@/stores/mesh-store";
 
-// Icon mapping for service types
 const serviceIcons: Record<ServiceType, React.ElementType> = {
     mqtt: Radio,
     http: Globe,
@@ -23,9 +27,13 @@ const serviceIcons: Record<ServiceType, React.ElementType> = {
     filter: Filter,
     transform: Workflow,
     gateway: Shield,
+    ai: Brain,
+    mcp: Plug,
+    splitter: GitFork,
+    aggregator: Merge,
+    logic: Binary,
 };
 
-// Color mapping for service types
 const serviceColors: Record<ServiceType, string> = {
     mqtt: "from-purple-500/20 to-purple-600/10 border-purple-500/30",
     http: "from-blue-500/20 to-blue-600/10 border-blue-500/30",
@@ -33,6 +41,11 @@ const serviceColors: Record<ServiceType, string> = {
     filter: "from-yellow-500/20 to-yellow-600/10 border-yellow-500/30",
     transform: "from-orange-500/20 to-orange-600/10 border-orange-500/30",
     gateway: "from-cyan-500/20 to-cyan-600/10 border-cyan-500/30",
+    ai: "from-pink-500/20 to-pink-600/10 border-pink-500/30",
+    mcp: "from-violet-500/20 to-violet-600/10 border-violet-500/30",
+    splitter: "from-teal-500/20 to-teal-600/10 border-teal-500/30",
+    aggregator: "from-indigo-500/20 to-indigo-600/10 border-indigo-500/30",
+    logic: "from-rose-500/20 to-rose-600/10 border-rose-500/30",
 };
 
 // Status indicator colors
@@ -108,6 +121,45 @@ function ServiceNodeComponent({ data, selected }: ServiceNodeProps) {
                         <span className="text-muted-foreground">Topic: </span>
                         <code className="bg-background/50 px-1.5 py-0.5 rounded text-[10px]">
                             {data.topic}
+                        </code>
+                    </div>
+                )}
+                {/* AI Node Fields */}
+                {data.model && (
+                    <div className="text-xs">
+                        <span className="text-muted-foreground">Model: </span>
+                        <code className="bg-pink-500/10 text-pink-400 px-1.5 py-0.5 rounded text-[10px]">
+                            {data.model}
+                        </code>
+                    </div>
+                )}
+                {data.prompt && (
+                    <div className="text-xs text-muted-foreground truncate">
+                        <span>Prompt: </span>
+                        <span className="italic">{data.prompt.substring(0, 50)}...</span>
+                    </div>
+                )}
+                {/* MCP Node Fields */}
+                {data.mcpServerUrl && (
+                    <div className="text-xs">
+                        <span className="text-muted-foreground">MCP Server: </span>
+                        <code className="bg-violet-500/10 text-violet-400 px-1.5 py-0.5 rounded text-[10px]">
+                            {data.mcpServerUrl}
+                        </code>
+                    </div>
+                )}
+                {data.mcpTool && (
+                    <div className="text-xs">
+                        <span className="text-muted-foreground">Tool: </span>
+                        <span className="font-medium">{data.mcpTool}</span>
+                    </div>
+                )}
+                {/* Logic Node Fields */}
+                {data.condition && (
+                    <div className="text-xs">
+                        <span className="text-muted-foreground">Condition: </span>
+                        <code className="bg-rose-500/10 text-rose-400 px-1.5 py-0.5 rounded text-[10px]">
+                            {data.condition}
                         </code>
                     </div>
                 )}

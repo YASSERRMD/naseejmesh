@@ -20,6 +20,12 @@ import {
     Workflow,
     Shield,
     RotateCcw,
+    Brain,        // AI
+    Plug,         // MCP
+    GitFork,      // Splitter
+    Merge,        // Aggregator
+    Binary,       // Logic
+    Sparkles,     // Smart Design
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -30,6 +36,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { generateNodeId } from "@/lib/flow-layout";
+import { SmartDesignDialog } from "@/components/flow/SmartDesignDialog";
 
 interface DesignPageProps {
     params: Promise<{ locale: string }>;
@@ -42,6 +49,11 @@ const serviceOptions: { type: ServiceType; label: string; icon: React.ElementTyp
     { type: "filter", label: "Filter", icon: Filter },
     { type: "transform", label: "Transform", icon: Workflow },
     { type: "gateway", label: "Gateway", icon: Shield },
+    { type: "ai", label: "AI / LLM", icon: Brain },
+    { type: "mcp", label: "MCP Server", icon: Plug },
+    { type: "splitter", label: "Splitter", icon: GitFork },
+    { type: "aggregator", label: "Aggregator", icon: Merge },
+    { type: "logic", label: "Logic (If/Else)", icon: Binary },
 ];
 
 export default function DesignPage({ params }: DesignPageProps) {
@@ -141,6 +153,8 @@ export default function DesignPage({ params }: DesignPageProps) {
                                     })}
                                 </DropdownMenuContent>
                             </DropdownMenu>
+
+                            <SmartDesignDialog />
 
                             <div className="w-px h-6 bg-border" />
 

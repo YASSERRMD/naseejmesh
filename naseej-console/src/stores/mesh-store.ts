@@ -13,7 +13,18 @@ import {
 import { getLayoutedElements } from "@/lib/flow-layout";
 
 // Service types for the mesh
-export type ServiceType = "mqtt" | "http" | "database" | "filter" | "transform" | "gateway";
+export type ServiceType =
+    | "mqtt"
+    | "http"
+    | "database"
+    | "filter"
+    | "transform"
+    | "gateway"
+    | "ai"         // AI/LLM node (Cohere)
+    | "mcp"        // Model Context Protocol
+    | "splitter"   // Split flow into parallel branches
+    | "aggregator" // Aggregate multiple inputs
+    | "logic";     // If/Else conditional logic
 
 export type ServiceStatus = "healthy" | "warning" | "error" | "offline";
 
@@ -25,6 +36,14 @@ export interface ServiceNodeData {
     topic?: string;
     requestsPerSec?: number;
     description?: string;
+    // AI Node specific
+    model?: string;         // e.g., 'command-r-plus', 'gpt-4'
+    prompt?: string;        // System prompt
+    // MCP Node specific
+    mcpServerUrl?: string;  // MCP server endpoint
+    mcpTool?: string;       // Selected tool from server
+    // Logic Node specific
+    condition?: string;     // e.g., 'input.value > 100'
     // Index signature for React Flow compatibility
     [key: string]: unknown;
 }

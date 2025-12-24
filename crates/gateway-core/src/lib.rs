@@ -6,6 +6,7 @@
 
 pub mod body;
 pub mod config;
+pub mod auth;
 pub mod error;
 pub mod executor;
 pub mod handler;
@@ -13,6 +14,7 @@ pub mod router;
 pub mod transform;
 
 pub use config::{Route, RouterMap};
+pub use auth::{User, Role, ApiKey};
 pub use error::GatewayError;
 pub use executor::TokioExecutor;
 pub use handler::handle_request;
