@@ -35,7 +35,7 @@ tower = "0.5"
 tower-http = { version = "0.6", features = ["cors", "trace"] }
 
 # Database
-surrealdb = { version = "2", features = ["kv-rocksdb"] }
+surrealdb = { version = "2", features = ["kv-rocksdb", "protocol-http", "protocol-ws"] }
 
 # Concurrency
 arc-swap = "1"

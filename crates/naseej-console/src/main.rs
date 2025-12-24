@@ -138,29 +138,40 @@ async fn main() -> anyhow::Result<()> {
 }
 
 /// Seed default admin user if no users exist
-async fn seed_admin_user(db: &surrealdb::Surreal<surrealdb::engine::remote::ws::Client>) -> anyhow::Result<()> {
+async fn seed_admin_user(db: &surreal_config::db::RemoteDb) -> anyhow::Result<()> {
     use surreal_config::auth_schema::{list_users, create_user};
     use gateway_core::auth::User;
     use naseej_security::KeyManager;
     use uuid::Uuid;
 
-    let users = list_users(db).await?;
-    if users.is_empty() {
-        info!("Seeding default admin user...");
-        let password_hash = KeyManager::hash_password("admin123")
-            .map_err(|e| anyhow::anyhow!("Hashing failed: {}", e))?;
+    // Try to list users, but if it fails (e.g., due to serialization issues), just skip seeding
+    match list_users(db).await {
+        Ok(users) if users.is_empty() => {
+            info!("Seeding default admin user...");
+            let password_hash = KeyManager::hash_password("admin123")
+                .map_err(|e| anyhow::anyhow!("Hashing failed: {}", e))?;
 
-        let user = User {
-            id: Uuid::new_v4().to_string(),
-            username: "admin".to_string(),
-            password_hash,
-            roles: vec!["admin".to_string()],
-            active: true,
-            created_at: chrono::Utc::now(),
-        };
+            let user = User {
+                id: Uuid::new_v4().to_string(),
+                username: "admin".to_string(),
+                password_hash,
+                roles: vec!["admin".to_string()],
+                active: true,
+                created_at: chrono::Utc::now(),
+            };
 
-        create_user(db, user).await?;
-        info!("Default admin user created (admin/admin123)");
+            if let Err(e) = create_user(db, user).await {
+                tracing::warn!("Failed to create admin user: {}. Continuing anyway.", e);
+            } else {
+                info!("Default admin user created (admin/admin123)");
+            }
+        }
+        Ok(_) => {
+            info!("Users already exist, skipping admin seeding");
+        }
+        Err(e) => {
+            tracing::warn!("Could not list users: {}. Skipping admin seeding.", e);
+        }
     }
 
     Ok(())
