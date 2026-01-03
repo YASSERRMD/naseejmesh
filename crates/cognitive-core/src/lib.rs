@@ -10,6 +10,7 @@
 //! - `CohereEmbedding`: Text embeddings via Cohere API
 //! - `EmbeddingProvider`: Unified embedding interface with caching
 //! - `CohereLlm`: Chat completions via Cohere Command models
+//! - `AiArchitect`: Intelligent route designer with LLM
 
 pub mod schema_ingestor;
 pub mod rhai_engine;
@@ -20,6 +21,7 @@ pub mod tools;
 pub mod cohere_embedding;
 pub mod embedding_provider;
 pub mod cohere_llm;
+pub mod ai_architect;
 
 pub use schema_ingestor::{SchemaIngestor, ApiEndpoint};
 pub use rhai_engine::RhaiEngine;
@@ -29,3 +31,4 @@ pub use vector_store::VectorStore;
 pub use cohere_embedding::CohereEmbedding;
 pub use embedding_provider::EmbeddingProvider;
 pub use cohere_llm::{CohereLlm, ToolDefinition, ToolCall, ChatMessage};
+pub use ai_architect::AiArchitect;
