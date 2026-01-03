@@ -13,6 +13,7 @@ pub mod handler;
 pub mod router;
 pub mod transform;
 pub mod observability;
+pub mod health;
 
 pub use config::{Route, RouterMap};
 pub use auth::{User, Role, ApiKey};
@@ -22,3 +23,7 @@ pub use handler::handle_request;
 pub use router::{build_router_map, match_route};
 pub use transform::{RhaiTransformer, TransformError, TransformResult, simulate, validate_script};
 pub use observability::{MetricsCollector, MetricsSnapshot, RequestMetrics, TraceContext};
+pub use health::{
+    HealthChecker, HealthCheckConfig, HealthStatus, HealthResponse, HealthCheck,
+    DatabaseHealthCheck, PingHealthCheck, MemoryHealthCheck
+};
