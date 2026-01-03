@@ -19,6 +19,8 @@ import {
     AlertCircle,
     Upload,
     Workflow,
+    Link,
+    Globe,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -92,6 +94,8 @@ export default function SchemasPage({ params }: SchemasPageProps) {
         version: "3.0.0",
         content: "",
     });
+    const [schemaUrl, setSchemaUrl] = useState("");
+    const [fetchingUrl, setFetchingUrl] = useState(false);
 
     const fetchSchemas = async () => {
         setLoading(true);
@@ -163,6 +167,32 @@ export default function SchemasPage({ params }: SchemasPageProps) {
             });
         };
         reader.readAsText(file);
+    };
+
+    const handleFetchFromUrl = async () => {
+        if (!schemaUrl) return;
+        setFetchingUrl(true);
+        setError(null);
+        try {
+            // Direct fetch - may fail due to CORS on some endpoints
+            const res = await fetch(schemaUrl);
+            if (!res.ok) throw new Error(`Failed to fetch: ${res.status} ${res.statusText}`);
+            const content = await res.text();
+            setNewSchema({
+                ...newSchema,
+                name: newSchema.name || new URL(schemaUrl).hostname,
+                content,
+            });
+            setSchemaUrl("");
+        } catch (err: any) {
+            if (err.message.includes("CORS") || err.message.includes("Failed to fetch")) {
+                setError(`CORS blocked: The URL doesn't allow browser access. Please download the file and upload it instead.`);
+            } else {
+                setError(`Failed to fetch from URL: ${err.message}`);
+            }
+        } finally {
+            setFetchingUrl(false);
+        }
     };
 
     const handleDelete = async (id: string, name: string) => {
@@ -288,6 +318,40 @@ export default function SchemasPage({ params }: SchemasPageProps) {
                                                     />
                                                 </div>
                                             </div>
+                                            {/* URL Import */}
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="url">Import from URL</Label>
+                                                <div className="flex gap-2">
+                                                    <div className="relative flex-1">
+                                                        <Globe className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                                                        <Input
+                                                            id="url"
+                                                            className="ps-9"
+                                                            placeholder="https://example.com/api/swagger.json or ?wsdl"
+                                                            value={schemaUrl}
+                                                            onChange={(e) => setSchemaUrl(e.target.value)}
+                                                        />
+                                                    </div>
+                                                    <Button
+                                                        variant="outline"
+                                                        onClick={handleFetchFromUrl}
+                                                        disabled={fetchingUrl || !schemaUrl}
+                                                    >
+                                                        {fetchingUrl ? <Loader2 className="h-4 w-4 animate-spin" /> : <Link className="h-4 w-4" />}
+                                                    </Button>
+                                                </div>
+                                                <p className="text-xs text-muted-foreground">e.g., OpenAPI JSON/YAML, WSDL URL (?wsdl), or GraphQL endpoint</p>
+                                            </div>
+
+                                            <div className="relative">
+                                                <div className="absolute inset-0 flex items-center">
+                                                    <span className="w-full border-t" />
+                                                </div>
+                                                <div className="relative flex justify-center text-xs uppercase">
+                                                    <span className="bg-background px-2 text-muted-foreground">Or paste/upload content</span>
+                                                </div>
+                                            </div>
+
                                             <div className="grid gap-2">
                                                 <div className="flex items-center justify-between">
                                                     <Label htmlFor="content">Schema Content *</Label>
