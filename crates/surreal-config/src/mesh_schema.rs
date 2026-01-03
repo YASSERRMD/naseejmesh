@@ -188,6 +188,12 @@ pub async fn create_api_schema<C: Connection>(db: &Surreal<C>, schema: SchemaInf
     created.map(SchemaInfo::from).ok_or_else(|| ConfigError::Database("Failed to create schema".to_string()))
 }
 
+pub async fn delete_api_schema<C: Connection>(db: &Surreal<C>, id: &str) -> Result<(), ConfigError> {
+    let _result: Option<DbApiSchema> = db.delete(("api_schemas", id)).await?;
+    Ok(())
+}
+
+
 pub async fn get_api_schema<C: Connection>(db: &Surreal<C>, id: &str) -> Result<Option<SchemaInfo>, ConfigError> {
     let result: Option<DbApiSchema> = db.select(("api_schemas", id)).await?;
     Ok(result.map(SchemaInfo::from))

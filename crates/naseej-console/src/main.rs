@@ -116,6 +116,7 @@ pub fn create_router(state: AppState) -> Router {
         // Schemas (NEW)
         .route("/api/schemas", get(handlers::list_schemas))
         .route("/api/schemas", post(handlers::create_schema))
+        .route("/api/schemas/:id", delete(handlers::delete_schema))
         .route("/api/schemas/:id/routes", post(handlers::generate_routes_from_schema))
         // Transformation simulation
         .route("/api/simulate", post(handlers::simulate_transform))

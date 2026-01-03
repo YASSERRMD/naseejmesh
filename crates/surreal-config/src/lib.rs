@@ -29,7 +29,7 @@ pub use auth_schema::{
     create_api_key, get_api_key, list_api_keys, delete_api_key
 };
 pub use mesh_schema::{
-    list_transformations, list_api_schemas, create_api_schema, get_api_schema, list_security_events, create_security_event,
+    list_transformations, list_api_schemas, create_api_schema, get_api_schema, delete_api_schema, list_security_events, create_security_event,
     TransformationInfo as DbTransformationInfo, SchemaInfo as DbSchemaInfo, SecurityEventInfo as DbSecurityEventInfo
 };
 pub use watcher::start_config_watcher;

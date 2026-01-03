@@ -405,6 +405,23 @@ pub async fn create_schema(
     }
 }
 
+
+/// Delete a schema - DELETE /api/schemas/:id
+pub async fn delete_schema(
+    State(state): State<Arc<AppState>>,
+    axum::extract::Path(id): axum::extract::Path<String>,
+) -> Result<StatusCode, (StatusCode, String)> {
+    let db = &*state.db;
+
+    match surreal_config::delete_api_schema(db, &id).await {
+        Ok(_) => Ok(StatusCode::NO_CONTENT),
+        Err(e) => {
+            error!(error = %e, "Failed to delete schema");
+            Err((StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))
+        }
+    }
+}
+
 /// Request to generate routes
 #[derive(Debug, Deserialize)]
 pub struct GenerateRoutesRequest {

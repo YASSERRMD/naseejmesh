@@ -87,6 +87,17 @@ export async function createSchema(schema: Partial<ApiSchema>): Promise<ApiSchem
     });
 }
 
+export async function updateSchema(id: string, schema: Partial<ApiSchema>): Promise<ApiSchema> {
+    return fetchApi<ApiSchema>(`/api/schemas/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(schema),
+    });
+}
+
+export async function deleteSchema(id: string): Promise<void> {
+    await fetchApi(`/api/schemas/${id}`, { method: "DELETE" });
+}
+
 // Metrics
 export async function getMetrics(): Promise<RequestMetrics> {
     return fetchApi<RequestMetrics>("/api/metrics");

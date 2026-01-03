@@ -165,6 +165,44 @@ export default function SchemasPage({ params }: SchemasPageProps) {
         reader.readAsText(file);
     };
 
+    const handleDelete = async (id: string, name: string) => {
+        if (!confirm(`Are you sure you want to delete schema "${name}"?`)) return;
+
+        try {
+            // @ts-ignore - deleteSchema imported implicitly with new api-client
+            await import("@/lib/api-client").then(mod => mod.deleteSchema(id));
+            setSchemas(schemas.filter(s => s.id !== id));
+        } catch (err: any) {
+            setError(err.message || "Failed to delete schema");
+        }
+    };
+
+    const handleDuplicate = async (schema: Schema) => {
+        try {
+            await createSchema({
+                name: `Copy of ${schema.name}`,
+                type: schema.type as any,
+                version: schema.version,
+                content: schema.content,
+                status: "valid",
+                endpoints: schema.endpoints,
+            });
+            await fetchSchemas();
+        } catch (err: any) {
+            setError(err.message || "Failed to duplicate schema");
+        }
+    };
+
+    const handleView = (schema: Schema) => {
+        setNewSchema({
+            name: schema.name,
+            type: schema.type,
+            version: schema.version,
+            content: schema.content || "",
+        });
+        setDialogOpen(true);
+    };
+
     return (
         <div className="min-h-screen bg-background">
             <Sidebar locale={locale} />
@@ -191,18 +229,23 @@ export default function SchemasPage({ params }: SchemasPageProps) {
                                     <RefreshCw className={cn("h-4 w-4 me-2", loading && "animate-spin")} />
                                     Refresh
                                 </Button>
-                                <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                                <Dialog open={dialogOpen} onOpenChange={(open) => {
+                                    setDialogOpen(open);
+                                    if (!open) {
+                                        setNewSchema({ name: "", type: "openapi", version: "3.0.0", content: "" });
+                                    }
+                                }}>
                                     <DialogTrigger asChild>
-                                        <Button>
+                                        <Button onClick={() => setNewSchema({ name: "", type: "openapi", version: "3.0.0", content: "" })}>
                                             <Plus className="h-4 w-4 me-2" />
                                             Import Schema
                                         </Button>
                                     </DialogTrigger>
                                     <DialogContent className="sm:max-w-[600px]">
                                         <DialogHeader>
-                                            <DialogTitle>Import API Schema</DialogTitle>
+                                            <DialogTitle>{newSchema.content ? "Edit/View Schema" : "Import API Schema"}</DialogTitle>
                                             <DialogDescription>
-                                                Import an OpenAPI, JSON Schema, GraphQL, SOAP, gRPC, or MCP schema file.
+                                                Details for the API Schema.
                                             </DialogDescription>
                                         </DialogHeader>
                                         <div className="grid gap-4 py-4">
@@ -280,7 +323,7 @@ export default function SchemasPage({ params }: SchemasPageProps) {
                                             </Button>
                                             <Button onClick={handleImportSchema} disabled={creating || !newSchema.name || !newSchema.content}>
                                                 {creating && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
-                                                Import Schema
+                                                Save Schema
                                             </Button>
                                         </DialogFooter>
                                     </DialogContent>
@@ -380,13 +423,13 @@ export default function SchemasPage({ params }: SchemasPageProps) {
                                                         <Workflow className="h-3 w-3 me-1" />
                                                         Gen Routes
                                                     </Button>
-                                                    <Button variant="ghost" size="icon" title="View">
+                                                    <Button variant="ghost" size="icon" title="View/Edit" onClick={() => handleView(schema)}>
                                                         <ExternalLink className="h-4 w-4" />
                                                     </Button>
-                                                    <Button variant="ghost" size="icon" title="Duplicate">
+                                                    <Button variant="ghost" size="icon" title="Duplicate" onClick={() => handleDuplicate(schema)}>
                                                         <Copy className="h-4 w-4" />
                                                     </Button>
-                                                    <Button variant="ghost" size="icon" title="Delete">
+                                                    <Button variant="ghost" size="icon" title="Delete" onClick={() => handleDelete(schema.id, schema.name)}>
                                                         <Trash2 className="h-4 w-4 text-destructive" />
                                                     </Button>
                                                 </div>
