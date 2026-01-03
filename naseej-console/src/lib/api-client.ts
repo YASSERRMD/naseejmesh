@@ -34,6 +34,10 @@ async function fetchApi<T>(
         throw new ApiError(response.status, await response.text());
     }
 
+    if (response.status === 204) {
+        return {} as T;
+    }
+
     return response.json();
 }
 
