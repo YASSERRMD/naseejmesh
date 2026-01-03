@@ -15,6 +15,7 @@ pub mod schema;
 pub mod auth_schema;
 pub mod watcher;
 pub mod vector_schema;
+pub mod surreal_vector_store;
 
 pub use db::{init_database, init_remote_database, DatabaseConfig, EmbeddedDb, RemoteDb};
 pub use error::ConfigError;
