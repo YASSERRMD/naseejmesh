@@ -9,6 +9,7 @@
 //! - `McpServer`: MCP protocol interface for external AI tools
 //! - `CohereEmbedding`: Text embeddings via Cohere API
 //! - `EmbeddingProvider`: Unified embedding interface with caching
+//! - `CohereLlm`: Chat completions via Cohere Command models
 
 pub mod schema_ingestor;
 pub mod rhai_engine;
@@ -18,6 +19,7 @@ pub mod vector_store;
 pub mod tools;
 pub mod cohere_embedding;
 pub mod embedding_provider;
+pub mod cohere_llm;
 
 pub use schema_ingestor::{SchemaIngestor, ApiEndpoint};
 pub use rhai_engine::RhaiEngine;
@@ -26,3 +28,4 @@ pub use mcp_server::McpServer;
 pub use vector_store::VectorStore;
 pub use cohere_embedding::CohereEmbedding;
 pub use embedding_provider::EmbeddingProvider;
+pub use cohere_llm::{CohereLlm, ToolDefinition, ToolCall, ChatMessage};
