@@ -1,0 +1,125 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: naseejmesh-gateway
+  labels:
+    app: naseejmesh
+    component: gateway
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: naseejmesh
+      component: gateway
+  template:
+    metadata:
+      labels:
+        app: naseejmesh
+        component: gateway
+    spec:
+      containers:
+        - name: gateway
+          image: naseejmesh/gateway:latest
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: PORT
+              value: "8080"
+            - name: SURREAL_URL
+              value: "ws://surrealdb:8000"
+            - name: RUST_LOG
+              value: "info"
+          livenessProbe:
+            httpGet:
+              path: /_gateway/health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /_gateway/ready
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: naseejmesh-gateway
+  labels:
+    app: naseejmesh
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+      name: http
+  selector:
+    app: naseejmesh
+    component: gateway
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: naseej-console
+  labels:
+    app: naseejmesh
+    component: console
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: naseejmesh
+      component: console
+  template:
+    metadata:
+      labels:
+        app: naseejmesh
+        component: console
+    spec:
+      containers:
+        - name: console-api
+          image: naseejmesh/console-api:latest
+          ports:
+            - containerPort: 3001
+              name: api
+          env:
+            - name: PORT
+              value: "3001"
+            - name: GATEWAY_URL
+              value: "http://naseejmesh-gateway:8080"
+            - name: COHERE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: naseej-secrets
+                  key: cohere-api-key
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: naseej-console
+  labels:
+    app: naseejmesh
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 3001
+      protocol: TCP
+      name: http
+  selector:
+    app: naseejmesh
+    component: console
