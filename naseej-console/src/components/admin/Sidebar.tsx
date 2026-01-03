@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Users, Shield, Key, LayoutDashboard, LogOut } from 'lucide-react';
@@ -28,8 +29,9 @@ export function AdminSidebar() {
 
     return (
         <div className="flex h-screen w-64 flex-col border-r border-zinc-800 bg-zinc-950">
-            <div className="flex h-16 items-center border-b border-zinc-800 px-6">
-                <span className="text-lg font-bold text-white">Naseej Admin</span>
+            <div className="flex h-16 items-center gap-3 border-b border-zinc-800 px-6">
+                <Image src="/logo.png" alt="NaseejMesh" width={32} height={32} />
+                <span className="text-lg font-bold text-white">NaseejMesh</span>
             </div>
 
             <nav className="flex-1 space-y-1 p-4">
