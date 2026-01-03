@@ -16,6 +16,7 @@ pub mod auth_schema;
 pub mod watcher;
 pub mod vector_schema;
 pub mod surreal_vector_store;
+pub mod route_repository;
 
 pub use db::{init_database, init_remote_database, DatabaseConfig, EmbeddedDb, RemoteDb};
 pub use error::ConfigError;
@@ -26,3 +27,4 @@ pub use auth_schema::{
     create_api_key, get_api_key, list_api_keys, delete_api_key
 };
 pub use watcher::start_config_watcher;
+pub use route_repository::{RouteRepository, RouteConfig, RouteUpdate, RepositoryError};
