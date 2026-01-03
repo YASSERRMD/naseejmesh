@@ -42,7 +42,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 // ... imports above
-import { getSchemas, createSchema } from "@/lib/api-client";
+import { getSchemas, createSchema, deleteSchema } from "@/lib/api-client";
 
 
 interface SchemasPageProps {
@@ -169,8 +169,7 @@ export default function SchemasPage({ params }: SchemasPageProps) {
         if (!confirm(`Are you sure you want to delete schema "${name}"?`)) return;
 
         try {
-            // @ts-ignore - deleteSchema imported implicitly with new api-client
-            await import("@/lib/api-client").then(mod => mod.deleteSchema(id));
+            await deleteSchema(id);
             setSchemas(schemas.filter(s => s.id !== id));
         } catch (err: any) {
             setError(err.message || "Failed to delete schema");
