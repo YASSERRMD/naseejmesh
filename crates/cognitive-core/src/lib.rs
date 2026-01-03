@@ -11,6 +11,7 @@
 //! - `EmbeddingProvider`: Unified embedding interface with caching
 //! - `CohereLlm`: Chat completions via Cohere Command models
 //! - `AiArchitect`: Intelligent route designer with LLM
+//! - `mcp_protocol`: Standard MCP protocol types
 
 pub mod schema_ingestor;
 pub mod rhai_engine;
@@ -22,6 +23,7 @@ pub mod cohere_embedding;
 pub mod embedding_provider;
 pub mod cohere_llm;
 pub mod ai_architect;
+pub mod mcp_protocol;
 
 pub use schema_ingestor::{SchemaIngestor, ApiEndpoint};
 pub use rhai_engine::RhaiEngine;
