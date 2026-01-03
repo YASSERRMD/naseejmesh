@@ -189,12 +189,16 @@ pub async fn create_api_schema<C: Connection>(db: &Surreal<C>, schema: SchemaInf
 }
 
 pub async fn delete_api_schema<C: Connection>(db: &Surreal<C>, id: &str) -> Result<(), ConfigError> {
-    let _result: Option<DbApiSchema> = db.delete(("api_schemas", id)).await?;
+    // Handle "api_schemas:id" vs "id"
+    let id_part = id.split(':').last().unwrap_or(id);
+    let _result: Option<DbApiSchema> = db.delete(("api_schemas", id_part)).await?;
     Ok(())
 }
 
 
 pub async fn get_api_schema<C: Connection>(db: &Surreal<C>, id: &str) -> Result<Option<SchemaInfo>, ConfigError> {
-    let result: Option<DbApiSchema> = db.select(("api_schemas", id)).await?;
+    // Handle "api_schemas:id" vs "id"
+    let id_part = id.split(':').last().unwrap_or(id);
+    let result: Option<DbApiSchema> = db.select(("api_schemas", id_part)).await?;
     Ok(result.map(SchemaInfo::from))
 }
