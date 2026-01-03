@@ -7,7 +7,8 @@ members = [
     "crates/naseej-console",
     "crates/naseej-security",
     "crates/naseej-test-harness",
-    "crates/naseejmesh-server"
+    "crates/naseejmesh-server",
+    "crates/naseej-cli"
 ]
 resolver = "2"
 
