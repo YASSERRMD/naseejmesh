@@ -74,6 +74,8 @@ interface MeshState {
     removeEdge: (id: string) => void;
     layout: () => void;
     reset: () => void;
+    fetchNodes: () => Promise<void>;
+    fetchStatus: () => Promise<void>;
 }
 
 // Initial demo state with 3 connected nodes
@@ -173,9 +175,40 @@ const initialEdges: MeshEdge[] = [
 ];
 
 export const useMeshStore = create<MeshState>((set, get) => ({
-    nodes: initialNodes,
-    edges: initialEdges,
+    nodes: [],
+    edges: [],
     selectedNodeId: null,
+
+    fetchNodes: async () => {
+        try {
+            const { getRoutes } = await import("@/lib/api-client");
+            const routes = await getRoutes();
+
+            const nodes: ServiceNode[] = routes.map((route, index) => ({
+                id: route.id,
+                type: "service",
+                position: { x: index * 250, y: 0 },
+                data: {
+                    label: route.name || route.path,
+                    serviceType: "gateway",
+                    status: route.enabled ? "healthy" : "offline",
+                    address: route.upstream.url,
+                    requestsPerSec: 0,
+                    description: route.path,
+                },
+            }));
+
+            set({ nodes });
+        } catch (error) {
+            console.error("Failed to fetch nodes:", error);
+        }
+    },
+
+    fetchStatus: async () => {
+        // Placeholder for fetchStatus implementation
+        console.log("Fetching status...");
+        return Promise.resolve();
+    },
 
     onNodesChange: (changes) => {
         set({

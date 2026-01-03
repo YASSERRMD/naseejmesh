@@ -15,6 +15,9 @@ const inter = Inter({
 export const metadata: Metadata = {
     title: "Naseej Console",
     description: "Enterprise Integration Dashboard",
+    icons: {
+        icon: "/logo.png",
+    },
 };
 
 interface RootLayoutProps {

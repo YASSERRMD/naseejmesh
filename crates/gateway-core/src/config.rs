@@ -6,39 +6,72 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
+use crate::serde_utils::deserialize_id;
+
 /// A single routing rule mapping a path to an upstream service.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Route {
     /// Unique identifier for the route
     pub id: String,
 
+
+
+
+    /// Human-readable name
+    #[serde(default)]
+    pub name: String,
+
     /// URL path pattern to match (e.g., "/api/v1/users")
     pub path: String,
 
-    /// Upstream service URL (e.g., "http://user-service:8080")
+    /// Upstream configuration
     pub upstream: String,
-
-    /// Traffic weight for load balancing (0-100)
-    /// Reserved for Phase 2 load balancing implementation
-    #[serde(default = "default_weight")]
-    pub weight: u32,
-
-    /// Whether this route is active
-    #[serde(default = "default_active")]
-    pub active: bool,
 
     /// HTTP methods allowed (empty = all methods)
     #[serde(default)]
     pub methods: Vec<String>,
 
+    /// Whether this route is active
+    #[serde(default = "default_active")]
+    pub active: bool,
+
+    /// Traffic weight for load balancing (0-100)
+    #[serde(default = "default_weight")]
+    pub weight: u32,
+
     /// Request timeout in milliseconds
     #[serde(default = "default_timeout")]
     pub timeout_ms: u64,
 
+    /// Number of retries for failed requests
+    #[serde(default)]
+    pub retries: u32,
+
+    /// Load balancing strategy
+    #[serde(default = "default_lb")]
+    pub load_balancer: String,
+
     /// Optional description for documentation
     #[serde(default)]
     pub description: String,
+
+    /// Permissions required to access this route
+    #[serde(default)]
+    pub permissions: Vec<String>,
+
+    /// Created timestamp
+    #[serde(default = "default_timestamp")]
+    pub created_at: String,
 }
+
+fn default_timestamp() -> String {
+    chrono::Utc::now().to_rfc3339()
+}
+
+fn default_lb() -> String {
+    "round_robin".to_string()
+}
+
 
 fn default_weight() -> u32 {
     100
@@ -55,15 +88,21 @@ fn default_timeout() -> u64 {
 impl Route {
     /// Create a new route with minimal required fields
     pub fn new(id: impl Into<String>, path: impl Into<String>, upstream: impl Into<String>) -> Self {
+        let id_str = id.into();
         Self {
-            id: id.into(),
+            id: id_str.clone(),
+            name: id_str,
             path: path.into(),
             upstream: upstream.into(),
             weight: default_weight(),
             active: default_active(),
             methods: Vec::new(),
             timeout_ms: default_timeout(),
+            retries: 0,
+            load_balancer: default_lb(),
             description: String::new(),
+            permissions: Vec::new(),
+            created_at: chrono::Utc::now().to_rfc3339(),
         }
     }
 

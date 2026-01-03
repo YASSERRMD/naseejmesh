@@ -1,43 +1,42 @@
-# Build stage
-FROM node:20-alpine AS builder
+# Optimized Dockerfile for Naseej Console Frontend
+FROM node:20-alpine AS base
 
+# 1. Install dependencies only when needed
+FROM base AS deps
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
-
-# Copy package files including lock file
+# Copy package files
 COPY naseej-console/package.json naseej-console/package-lock.json ./
-
-# Install dependencies (use npm install for flexibility)
 RUN npm install
 
-# Copy source files
+# 2. Rebuild the source code only when needed
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY naseej-console .
-
-# Build the application
-ENV NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_TELEMETRY_DISABLED 1
+# Note: In development we might want to skip build if just running dev
 RUN npm run build
 
-# Runtime stage
-FROM node:20-alpine
-
+# 3. Production image, copy all the files and run next
+FROM base AS runner
 WORKDIR /app
+ENV NODE_ENV production
+ENV NEXT_TELEMETRY_DISABLED 1
 
-# Copy necessary files from builder
-COPY --from=builder /app/.next ./.next
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/public ./public
 
-# Environment variables
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
-ENV PORT=3000
-
-# Expose port
+USER nextjs
 EXPOSE 3000
+ENV PORT 3000
 
-# Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 1
 
-# Start the application
 CMD ["npm", "start"]

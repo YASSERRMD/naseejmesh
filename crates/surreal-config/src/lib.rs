@@ -13,6 +13,8 @@ pub mod db;
 pub mod error;
 pub mod schema;
 pub mod auth_schema;
+pub mod mesh_schema;
+
 pub mod watcher;
 pub mod vector_schema;
 pub mod surreal_vector_store;
@@ -25,6 +27,10 @@ pub use auth_schema::{
     create_user, get_user, get_user_by_username, list_users,
     create_role, get_role, list_roles,
     create_api_key, get_api_key, list_api_keys, delete_api_key
+};
+pub use mesh_schema::{
+    list_transformations, list_api_schemas, create_api_schema, get_api_schema, list_security_events, create_security_event,
+    TransformationInfo as DbTransformationInfo, SchemaInfo as DbSchemaInfo, SecurityEventInfo as DbSecurityEventInfo
 };
 pub use watcher::start_config_watcher;
 pub use route_repository::{RouteRepository, RouteConfig, RouteUpdate, RepositoryError};

@@ -73,8 +73,9 @@ pub async fn create_user_handler(
         password_hash,
         roles: req.roles,
         active: true,
-        created_at: chrono::Utc::now(),
+        created_at: chrono::Utc::now().to_rfc3339(),
     };
+
 
     let created = create_user(&state.db, user).await.map_err(|e| {
         error!("Create user failed: {}", e);
@@ -106,8 +107,9 @@ pub async fn create_role_handler(
         id: Uuid::new_v4().to_string(),
         name: req.name,
         permissions: req.permissions,
-        created_at: chrono::Utc::now(),
+        created_at: chrono::Utc::now().to_rfc3339(),
     };
+
 
     let created = create_role(&state.db, role).await.map_err(|e| {
         error!("Create role failed: {}", e);
@@ -145,9 +147,10 @@ pub async fn create_key_handler(
         owner_id: req.owner_id,
         scopes: req.scopes,
         expires_at: None, // Optional expiration
-        created_at: chrono::Utc::now(),
+        created_at: chrono::Utc::now().to_rfc3339(),
         last_used_at: None,
     };
+
 
     let created = create_api_key(&state.db, key).await.map_err(|e| {
         error!("Create key failed: {}", e);

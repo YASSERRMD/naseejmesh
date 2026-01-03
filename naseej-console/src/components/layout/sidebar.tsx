@@ -23,6 +23,16 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useSidebarStore } from "@/stores/ui-store";
+import { useGatewayStatus, useMetrics, useRoutes, useTransformations } from "@/lib/hooks";
+
+function formatUptime(seconds: number): string {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    if (h > 0) return `${h}h ${m}m`;
+    return `${m}m`;
+}
+
+import Image from "next/image";
 
 interface NavItem {
     href: string;
@@ -55,6 +65,18 @@ export function Sidebar({ locale }: SidebarProps) {
     const { isCollapsed, toggle } = useSidebarStore();
     const isRTL = locale === "ar";
 
+    // Real data hooks
+    const { data: routes } = useRoutes();
+    const { data: transformations } = useTransformations();
+    const { data: status } = useGatewayStatus();
+    const { data: metrics } = useMetrics();
+
+    // Map badges to real data
+    const badges: Record<string, number | undefined> = {
+        routes: routes?.length,
+        transformations: transformations?.length,
+    };
+
     return (
         <aside
             className={cn(
@@ -66,10 +88,14 @@ export function Sidebar({ locale }: SidebarProps) {
             {/* Logo */}
             <div className="h-16 flex items-center justify-center border-b border-border">
                 {isCollapsed ? (
-                    <Zap className="h-8 w-8 text-primary" />
+                    <div className="relative h-8 w-8">
+                        <Image src="/logo.png" alt="Naseej" fill className="object-contain" />
+                    </div>
                 ) : (
                     <div className="flex items-center gap-2">
-                        <Zap className="h-8 w-8 text-primary" />
+                        <div className="relative h-8 w-8">
+                            <Image src="/logo.png" alt="Naseej" fill className="object-contain" />
+                        </div>
                         <span className="font-semibold text-lg">Naseej</span>
                     </div>
                 )}
@@ -80,6 +106,7 @@ export function Sidebar({ locale }: SidebarProps) {
                 {navItems.map((item) => {
                     const isActive = pathname.includes(item.href);
                     const Icon = item.icon;
+                    const badgeCount = badges[item.labelKey] ?? item.badge;
 
                     return (
                         <Link
@@ -96,9 +123,9 @@ export function Sidebar({ locale }: SidebarProps) {
                             {!isCollapsed && (
                                 <>
                                     <span className="flex-1">{t(item.labelKey)}</span>
-                                    {item.badge && (
+                                    {badgeCount !== undefined && badgeCount > 0 && (
                                         <span className="bg-primary/20 text-primary text-xs px-2 py-0.5 rounded-full">
-                                            {item.badge}
+                                            {badgeCount}
                                         </span>
                                     )}
                                 </>
@@ -121,14 +148,18 @@ export function Sidebar({ locale }: SidebarProps) {
                                 {tActions("newRoute")}
                             </Button>
                         </Link>
-                        <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
-                            <Upload className="h-4 w-4" />
-                            {tActions("importOpenAPI")}
-                        </Button>
-                        <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
-                            <TestTube className="h-4 w-4" />
-                            {tActions("testTransform")}
-                        </Button>
+                        <Link href={`/${locale}/schemas`}>
+                            <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
+                                <Upload className="h-4 w-4" />
+                                {tActions("importOpenAPI")}
+                            </Button>
+                        </Link>
+                        <Link href={`/${locale}/transformations`}>
+                            <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
+                                <TestTube className="h-4 w-4" />
+                                {tActions("testTransform")}
+                            </Button>
+                        </Link>
                     </div>
                 </div>
             )}
@@ -141,18 +172,29 @@ export function Sidebar({ locale }: SidebarProps) {
                     </p>
                     <div className="bg-accent/50 rounded-lg p-3 space-y-2">
                         <div className="flex items-center gap-2">
-                            <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                            <span className="text-sm font-medium">{tGateway("healthy")}</span>
-                            <span className="text-xs text-muted-foreground ms-auto">v0.1.0</span>
+                            <div className={cn(
+                                "h-2 w-2 rounded-full animate-pulse",
+                                status?.healthy ? "bg-green-500" : "bg-red-500"
+                            )} />
+                            <span className="text-sm font-medium">
+                                {status?.healthy ? tGateway("healthy") : tGateway("unhealthy")}
+                            </span>
+                            <span className="text-xs text-muted-foreground ms-auto">
+                                {status?.version || "v0.1.0"}
+                            </span>
                         </div>
                         <div className="grid grid-cols-2 gap-2 text-xs">
                             <div>
                                 <span className="text-muted-foreground">{tGateway("uptime")}</span>
-                                <p className="font-medium">2h 34m</p>
+                                <p className="font-medium">
+                                    {status?.uptime ? formatUptime(status.uptime) : "0m"}
+                                </p>
                             </div>
                             <div>
                                 <span className="text-muted-foreground">{tGateway("requests")}</span>
-                                <p className="font-medium">1,234</p>
+                                <p className="font-medium">
+                                    {metrics?.perSecond?.toLocaleString() || "0"}
+                                </p>
                             </div>
                         </div>
                     </div>

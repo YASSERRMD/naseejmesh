@@ -62,6 +62,11 @@ pub async fn run_server(config: ServerConfig) -> anyhow::Result<()> {
 
     // Create application state
     let state = AppState::new(db);
+    
+    // Load existing state from DB
+    if let Err(e) = state.load_from_db().await {
+        tracing::error!(error = %e, "Failed to load initial state from database");
+    }
 
     // Build router
     let app = create_router(state);
@@ -110,6 +115,8 @@ pub fn create_router(state: AppState) -> Router {
         .route("/api/admin/keys/:id", delete(handlers::admin::delete_key_handler))
         // Schemas (NEW)
         .route("/api/schemas", get(handlers::list_schemas))
+        .route("/api/schemas", post(handlers::create_schema))
+        .route("/api/schemas/:id/routes", post(handlers::generate_routes_from_schema))
         // Transformation simulation
         .route("/api/simulate", post(handlers::simulate_transform))
         .route("/api/validate", post(handlers::validate_transform))
@@ -157,8 +164,9 @@ async fn seed_admin_user(db: &surreal_config::db::RemoteDb) -> anyhow::Result<()
                 password_hash,
                 roles: vec!["admin".to_string()],
                 active: true,
-                created_at: chrono::Utc::now(),
+                created_at: chrono::Utc::now().to_rfc3339(),
             };
+
 
             if let Err(e) = create_user(db, user).await {
                 tracing::warn!("Failed to create admin user: {}. Continuing anyway.", e);

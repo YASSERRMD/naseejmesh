@@ -6,6 +6,8 @@ use std::time::Instant;
 use tokio::sync::RwLock;
 use surrealdb::Surreal;
 use surreal_config::db::RemoteDb;
+use surreal_config::ConfigError;
+use tracing::info;
 
 /// Shared application state
 pub struct AppState {
@@ -35,17 +37,23 @@ pub struct AppState {
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct RouteInfo {
     pub id: String,
+    pub name: String,
     pub path: String,
     pub upstream: String,
-    pub method: String,
+    pub method: String, // UI currently expects single method or primary
+    pub methods: Vec<String>,
     pub transform_script: Option<String>,
     pub active: bool,
+    pub weight: u32,
+    pub retries: u32,
+    pub load_balancer: String,
     pub created_at: String,
     #[serde(default)]
     pub requests: u64,
     #[serde(default)]
     pub avg_latency_ms: u64,
 }
+
 
 /// Transformation script info
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -90,141 +98,103 @@ pub struct SchemaInfo {
 }
 
 impl AppState {
-    /// Create new application state with demo data
+    /// Create new application state
     pub fn new(db: Arc<RemoteDb>) -> Self {
         let rhai_engine = Arc::new(RhaiEngine::new());
         let vector_store = Arc::new(RwLock::new(VectorStore::new()));
         let config = ArchitectConfig::default();
         let architect = NaseejArchitect::new(config, rhai_engine, vector_store);
 
-        // Sample routes for demo
-        let routes = vec![
-            RouteInfo {
-                id: "route-1".to_string(),
-                path: "/api/users".to_string(),
-                upstream: "http://users-service:8080".to_string(),
-                method: "GET".to_string(),
-                transform_script: None,
-                active: true,
-                created_at: chrono::Utc::now().to_rfc3339(),
-                requests: 12453,
-                avg_latency_ms: 42,
-            },
-            RouteInfo {
-                id: "route-2".to_string(),
-                path: "/api/orders".to_string(),
-                upstream: "http://orders-service:8080".to_string(),
-                method: "POST".to_string(),
-                transform_script: Some("output = input;".to_string()),
-                active: true,
-                created_at: chrono::Utc::now().to_rfc3339(),
-                requests: 8921,
-                avg_latency_ms: 67,
-            },
-            RouteInfo {
-                id: "route-3".to_string(),
-                path: "/api/products".to_string(),
-                upstream: "http://products-service:8080".to_string(),
-                method: "GET".to_string(),
-                transform_script: None,
-                active: false,
-                created_at: chrono::Utc::now().to_rfc3339(),
-                requests: 5432,
-                avg_latency_ms: 35,
-            },
-        ];
-
-        // Sample transformations
-        let transformations = vec![
-            TransformationInfo {
-                id: "transform-1".to_string(),
-                name: "Celsius to Fahrenheit".to_string(),
-                description: "Converts temperature values".to_string(),
-                language: "rhai".to_string(),
-                script: "let temp = input.temperature;\noutput.fahrenheit = (temp * 9/5) + 32;".to_string(),
-                input_type: "json".to_string(),
-                output_type: "json".to_string(),
-                used_by: vec!["route-1".to_string()],
-                created_at: chrono::Utc::now().to_rfc3339(),
-                updated_at: chrono::Utc::now().to_rfc3339(),
-            },
-            TransformationInfo {
-                id: "transform-2".to_string(),
-                name: "XML to JSON".to_string(),
-                description: "Converts XML payloads to JSON".to_string(),
-                language: "rhai".to_string(),
-                script: "output = xml_to_json(input);".to_string(),
-                input_type: "xml".to_string(),
-                output_type: "json".to_string(),
-                used_by: vec!["route-2".to_string()],
-                created_at: chrono::Utc::now().to_rfc3339(),
-                updated_at: chrono::Utc::now().to_rfc3339(),
-            },
-        ];
-
-        // Sample security events
-        let security_events = vec![
-            SecurityEvent {
-                id: "sec-1".to_string(),
-                event_type: "blocked".to_string(),
-                category: "waf".to_string(),
-                message: "SQL Injection attempt detected".to_string(),
-                source: "192.168.1.45".to_string(),
-                timestamp: chrono::Utc::now().to_rfc3339(),
-            },
-            SecurityEvent {
-                id: "sec-2".to_string(),
-                event_type: "warning".to_string(),
-                category: "rate_limit".to_string(),
-                message: "Rate limit exceeded".to_string(),
-                source: "10.0.0.23".to_string(),
-                timestamp: chrono::Utc::now().to_rfc3339(),
-            },
-            SecurityEvent {
-                id: "sec-3".to_string(),
-                event_type: "blocked".to_string(),
-                category: "waf".to_string(),
-                message: "XSS payload in request body".to_string(),
-                source: "192.168.1.89".to_string(),
-                timestamp: chrono::Utc::now().to_rfc3339(),
-            },
-        ];
-
-        // Sample schemas
-        let schemas = vec![
-            SchemaInfo {
-                id: "schema-1".to_string(),
-                name: "User Service API".to_string(),
-                schema_type: "openapi".to_string(),
-                version: "3.0.1".to_string(),
-                content: "".to_string(),
-                endpoints: 12,
-                status: "valid".to_string(),
-                created_at: chrono::Utc::now().to_rfc3339(),
-                updated_at: chrono::Utc::now().to_rfc3339(),
-            },
-            SchemaInfo {
-                id: "schema-2".to_string(),
-                name: "Orders Schema".to_string(),
-                schema_type: "jsonschema".to_string(),
-                version: "draft-07".to_string(),
-                content: "".to_string(),
-                endpoints: 5,
-                status: "valid".to_string(),
-                created_at: chrono::Utc::now().to_rfc3339(),
-                updated_at: chrono::Utc::now().to_rfc3339(),
-            },
-        ];
-
         Self {
             architect: RwLock::new(architect),
-            routes: RwLock::new(routes),
-            transformations: RwLock::new(transformations),
-            security_events: RwLock::new(security_events),
-            schemas: RwLock::new(schemas),
+            routes: RwLock::new(Vec::new()),
+            transformations: RwLock::new(Vec::new()),
+            security_events: RwLock::new(Vec::new()),
+            schemas: RwLock::new(Vec::new()),
             db,
             start_time: Instant::now(),
         }
+    }
+
+    /// Load state from database
+    pub async fn load_from_db(&self) -> Result<(), surreal_config::ConfigError> {
+        let db = &*self.db;
+
+        // Fetch routes
+        let routes = surreal_config::schema::get_all_routes(db).await?;
+        let mut routes_cache = self.routes.write().await;
+        *routes_cache = routes.into_iter().map(|r| RouteInfo {
+            id: r.id.clone(),
+            name: r.name,
+            path: r.path.clone(),
+            upstream: r.upstream.clone(),
+            method: if r.methods.is_empty() { "GET".to_string() } else { r.methods[0].clone() },
+            methods: r.methods,
+            transform_script: None, 
+            active: r.active,
+            weight: r.weight,
+            retries: r.retries,
+            load_balancer: r.load_balancer,
+            created_at: r.created_at,
+            requests: 0,
+            avg_latency_ms: 0,
+        }).collect();
+
+        // Fetch transformations
+        if let Ok(transformations) = surreal_config::list_transformations(db).await {
+            let mut trans_cache = self.transformations.write().await;
+            *trans_cache = transformations.into_iter().map(|t| TransformationInfo {
+                id: t.id,
+                name: t.name,
+                description: t.description,
+                language: t.language,
+                script: t.script,
+                input_type: t.input_type,
+                output_type: t.output_type,
+                used_by: t.used_by,
+                created_at: t.created_at,
+                updated_at: t.updated_at,
+            }).collect();
+        }
+
+        // Fetch schemas
+        if let Ok(schemas) = surreal_config::list_api_schemas(db).await {
+            let mut schema_cache = self.schemas.write().await;
+            *schema_cache = schemas.into_iter().map(|s| SchemaInfo {
+                id: s.id,
+                name: s.name,
+                schema_type: s.schema_type,
+                version: s.version,
+                content: s.content,
+                endpoints: s.endpoints,
+                status: s.status,
+                created_at: s.created_at,
+                updated_at: s.updated_at,
+            }).collect();
+        }
+
+        // Fetch security events
+        if let Ok(events) = surreal_config::list_security_events(db, 50).await {
+            let mut event_cache = self.security_events.write().await;
+            *event_cache = events.into_iter().map(|e| SecurityEvent {
+                id: e.id,
+                event_type: e.event_type,
+                category: e.category,
+                message: e.message,
+                source: e.source,
+                timestamp: e.timestamp,
+            }).collect();
+        }
+
+        info!(
+            routes = %routes_cache.len(),
+            transformations = %self.transformations.read().await.len(),
+            schemas = %self.schemas.read().await.len(),
+            "Loaded mesh state from database"
+        );
+
+
+        Ok(())
     }
 
     /// Get uptime in seconds
@@ -232,5 +202,6 @@ impl AppState {
         self.start_time.elapsed().as_secs()
     }
 }
+
 
 // impl Default for AppState removal since it requires args now

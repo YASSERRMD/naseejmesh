@@ -45,13 +45,18 @@ function MeshCanvasInner({ locale = "en" }: MeshCanvasProps) {
         onConnect,
         setSelectedNode,
         layout,
+        fetchNodes,
     } = useMeshStore();
 
-    // Auto-layout on first render
+    // Auto-layout and fetch on first render
     useEffect(() => {
-        layout();
-        // Fit view after layout
-        setTimeout(() => fitView({ padding: 0.2 }), 100);
+        const load = async () => {
+            await fetchNodes();
+            layout();
+            // Fit view after layout
+            setTimeout(() => fitView({ padding: 0.2 }), 100);
+        };
+        load();
     }, []);
 
     const handleNodeClick = useCallback(

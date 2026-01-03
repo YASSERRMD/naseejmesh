@@ -1,4 +1,4 @@
-# Optimized Dockerfile for Naseej Console Backend
+# Optimized Dockerfile for Naseej Gateway
 FROM lukemathwalker/cargo-chef:latest-rust-1.83.0 AS chef
 RUN rustup install nightly && rustup default nightly
 WORKDIR /app
@@ -22,7 +22,7 @@ RUN cargo chef cook --recipe-path recipe.json
 
 # Build the actual application
 COPY . .
-RUN cargo build -p naseej-console
+RUN cargo build -p naseejmesh-server
 
 # Runtime stage
 FROM debian:bookworm-slim
@@ -33,13 +33,13 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy the binary
-COPY --from=builder /app/target/debug/naseej-console /app/naseej-console
+COPY --from=builder /app/target/debug/naseejmesh-gateway /app/naseejmesh-gateway
 
-EXPOSE 3001
-ENV PORT=3001
+EXPOSE 8080
+ENV PORT=8080
 ENV RUST_LOG=info
 
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:3001/health || exit 1
+HEALTHCHECK --interval=5s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8080/_gateway/health || exit 1
 
-CMD ["/app/naseej-console"]
+CMD ["/app/naseejmesh-gateway"]

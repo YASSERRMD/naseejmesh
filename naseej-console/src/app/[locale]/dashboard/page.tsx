@@ -7,8 +7,21 @@ import { useSidebarStore } from "@/stores/ui-store";
 import { useGatewayStatus, useMetrics, useSecurityEvents } from "@/lib/hooks";
 import { cn } from "@/lib/utils";
 import { use } from "react";
-import { Activity, Route, Workflow, Shield, TrendingUp, TrendingDown, AlertCircle } from "lucide-react";
+import Link from "next/link";
+import {
+    Activity,
+    Route,
+    Workflow,
+    Shield,
+    TrendingUp,
+    TrendingDown,
+    AlertCircle,
+    ExternalLink,
+    RefreshCw,
+    ChevronRight,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
+import { Button } from "@/components/ui/button";
 
 interface DashboardPageProps {
     params: Promise<{ locale: string }>;
@@ -22,11 +35,17 @@ export default function DashboardPage({ params }: DashboardPageProps) {
     const tGateway = useTranslations("gateway");
 
     // Real-time data hooks
-    const { data: gatewayStatus, isLoading: statusLoading } = useGatewayStatus();
-    const { data: metrics } = useMetrics();
-    const { data: securityEvents } = useSecurityEvents(5);
+    const { data: gatewayStatus, isLoading: statusLoading, mutate: refreshStatus } = useGatewayStatus();
+    const { data: metrics, mutate: refreshMetrics } = useMetrics();
+    const { data: securityEvents, mutate: refreshEvents } = useSecurityEvents(5);
 
     const blockedCount = securityEvents?.filter(e => e.type === "blocked").length || 0;
+
+    const handleRefresh = () => {
+        refreshStatus?.();
+        refreshMetrics?.();
+        refreshEvents?.();
+    };
 
     return (
         <div className="min-h-screen bg-background">
@@ -42,41 +61,56 @@ export default function DashboardPage({ params }: DashboardPageProps) {
                 <main className="p-6">
                     <div className="space-y-6">
                         {/* Page Header */}
-                        <div>
-                            <h1 className="text-3xl font-bold tracking-tight">{t("dashboard")}</h1>
-                            <p className="text-muted-foreground mt-1">
-                                Real-time overview of your API Gateway
-                            </p>
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h1 className="text-3xl font-bold tracking-tight">{t("dashboard")}</h1>
+                                <p className="text-muted-foreground mt-1">
+                                    Real-time overview of your API Gateway
+                                </p>
+                            </div>
+                            <Button variant="outline" onClick={handleRefresh}>
+                                <RefreshCw className="h-4 w-4 me-2" />
+                                Refresh
+                            </Button>
                         </div>
 
-                        {/* Stats Grid */}
+                        {/* Stats Grid - Now Clickable! */}
                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                            <StatCard
-                                icon={Route}
-                                title="Active Routes"
-                                value={gatewayStatus?.routes?.toString() || "12"}
-                                trend={+2}
-                                loading={statusLoading}
-                            />
-                            <StatCard
-                                icon={Workflow}
-                                title="Transformations"
-                                value="5"
-                                subtext="3 active"
-                            />
+                            <Link href={`/${locale}/routes`}>
+                                <StatCard
+                                    icon={Route}
+                                    title="Active Routes"
+                                    value={gatewayStatus?.routes?.toString() || "0"}
+                                    trend={gatewayStatus?.routes ? +2 : undefined}
+                                    loading={statusLoading}
+                                    clickable
+                                />
+                            </Link>
+                            <Link href={`/${locale}/transformations`}>
+                                <StatCard
+                                    icon={Workflow}
+                                    title="Transformations"
+                                    value="0"
+                                    subtext="Configure scripts"
+                                    clickable
+                                />
+                            </Link>
                             <StatCard
                                 icon={Activity}
                                 title="Requests/sec"
-                                value={metrics?.perSecond?.toLocaleString() || "127"}
-                                trend={+12}
+                                value={metrics?.perSecond?.toLocaleString() || "0"}
+                                trend={metrics?.perSecond ? +12 : undefined}
                                 loading={!metrics}
                             />
-                            <StatCard
-                                icon={Shield}
-                                title="Blocked Today"
-                                value={blockedCount.toString()}
-                                variant="warning"
-                            />
+                            <Link href={`/${locale}/security`}>
+                                <StatCard
+                                    icon={Shield}
+                                    title="Blocked Today"
+                                    value={blockedCount.toString()}
+                                    variant="warning"
+                                    clickable
+                                />
+                            </Link>
                         </div>
 
                         {/* Gateway Status */}
@@ -105,23 +139,59 @@ export default function DashboardPage({ params }: DashboardPageProps) {
                                 </div>
                                 <div>
                                     <p className="text-sm text-muted-foreground">Avg Latency</p>
-                                    <p className="font-medium">{metrics?.avgLatencyMs || 45}ms</p>
+                                    <p className="font-medium">{metrics?.avgLatencyMs || 0}ms</p>
                                 </div>
                             </div>
                         </div>
 
+                        {/* Quick Actions */}
+                        <div className="rounded-lg border bg-card p-6">
+                            <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
+                            <div className="grid gap-3 md:grid-cols-3">
+                                <Link href={`/${locale}/routes`} className="block h-full">
+                                    <QuickActionCard
+                                        title="Create New Route"
+                                        description="Add a new API route to proxy requests"
+                                        icon={Route}
+                                    />
+                                </Link>
+                                <Link href={`/${locale}/transformations`} className="block h-full">
+                                    <QuickActionCard
+                                        title="Add Transformation"
+                                        description="Write Rhai scripts to transform data"
+                                        icon={Workflow}
+                                    />
+                                </Link>
+                                <Link href={`/${locale}/schemas`} className="block h-full">
+                                    <QuickActionCard
+                                        title="Import Schema"
+                                        description="Import OpenAPI or GraphQL schemas"
+                                        icon={ExternalLink}
+                                    />
+                                </Link>
+                            </div>
+                        </div>
+
                         {/* Recent Security Events */}
-                        {securityEvents && securityEvents.length > 0 && (
-                            <div className="rounded-lg border bg-card p-6">
-                                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                        <div className="rounded-lg border bg-card p-6">
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-lg font-semibold flex items-center gap-2">
                                     <AlertCircle className="h-5 w-5" />
                                     Recent Security Events
                                 </h2>
+                                <Link href={`/${locale}/security`}>
+                                    <Button variant="ghost" size="sm">
+                                        View All
+                                        <ChevronRight className="h-4 w-4 ms-1" />
+                                    </Button>
+                                </Link>
+                            </div>
+                            {securityEvents && securityEvents.length > 0 ? (
                                 <div className="space-y-2">
                                     {securityEvents.slice(0, 5).map((event) => (
                                         <div
                                             key={event.id}
-                                            className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50"
+                                            className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 cursor-pointer transition-colors"
                                         >
                                             <div className="flex items-center gap-3">
                                                 <div className={cn(
@@ -140,8 +210,14 @@ export default function DashboardPage({ params }: DashboardPageProps) {
                                         </div>
                                     ))}
                                 </div>
-                            </div>
-                        )}
+                            ) : (
+                                <div className="text-center py-8 text-muted-foreground">
+                                    <Shield className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                                    <p>No security events recorded yet.</p>
+                                    <p className="text-sm">Your gateway is monitoring for threats.</p>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </main>
             </div>
@@ -157,17 +233,22 @@ interface StatCardProps {
     subtext?: string;
     loading?: boolean;
     variant?: "default" | "warning";
+    clickable?: boolean;
 }
 
-function StatCard({ icon: Icon, title, value, trend, subtext, loading, variant = "default" }: StatCardProps) {
+function StatCard({ icon: Icon, title, value, trend, subtext, loading, variant = "default", clickable }: StatCardProps) {
     return (
-        <div className="rounded-lg border bg-card p-6">
+        <div className={cn(
+            "rounded-lg border bg-card p-6 transition-all",
+            clickable && "hover:border-primary hover:shadow-md cursor-pointer"
+        )}>
             <div className="flex items-center gap-2">
                 <Icon className={cn(
                     "h-5 w-5",
                     variant === "warning" ? "text-yellow-500" : "text-muted-foreground"
                 )} />
                 <span className="text-sm font-medium text-muted-foreground">{title}</span>
+                {clickable && <ChevronRight className="h-4 w-4 ms-auto text-muted-foreground" />}
             </div>
             <p className={cn("text-2xl font-bold mt-2", loading && "animate-pulse")}>
                 {loading ? "..." : value}
@@ -184,6 +265,29 @@ function StatCard({ icon: Icon, title, value, trend, subtext, loading, variant =
             {subtext && (
                 <p className="text-xs text-muted-foreground mt-1">{subtext}</p>
             )}
+        </div>
+    );
+}
+
+interface QuickActionCardProps {
+    title: string;
+    description: string;
+    icon: React.ElementType;
+}
+
+function QuickActionCard({ title, description, icon: Icon }: QuickActionCardProps) {
+    return (
+        <div className="p-4 rounded-lg border hover:border-primary hover:shadow-md transition-all cursor-pointer group">
+            <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                    <Icon className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1">
+                    <p className="font-medium">{title}</p>
+                    <p className="text-xs text-muted-foreground">{description}</p>
+                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+            </div>
         </div>
     );
 }

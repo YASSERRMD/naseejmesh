@@ -17,6 +17,7 @@ pub mod health;
 pub mod circuit_breaker;
 pub mod caching;
 pub mod openapi_gen;
+pub mod serde_utils;
 
 pub use config::{Route, RouterMap};
 pub use auth::{User, Role, ApiKey};

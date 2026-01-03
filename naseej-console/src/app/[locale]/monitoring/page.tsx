@@ -31,6 +31,10 @@ export default function MonitoringPage({ params }: MonitoringPageProps) {
     const isRTL = locale === "ar";
     const t = useTranslations("nav");
 
+    // Real data hooks
+    const { data: metrics } = useMetrics();
+    const { data: status } = useGatewayStatus();
+
     return (
         <div className="min-h-screen bg-background">
             <Sidebar locale={locale} />
@@ -57,9 +61,10 @@ export default function MonitoringPage({ params }: MonitoringPageProps) {
                             <HealthCard
                                 icon={Server}
                                 title="Gateway"
-                                status="healthy"
-                                detail="Running v0.1.0"
+                                status={status?.healthy ? "healthy" : "error"}
+                                detail={`Running ${status?.version || "..."}`}
                             />
+                            {/* System metrics are not yet exposed by backend, keeping simulated for UI layout */}
                             <HealthCard
                                 icon={Cpu}
                                 title="CPU Usage"
@@ -70,7 +75,7 @@ export default function MonitoringPage({ params }: MonitoringPageProps) {
                                 icon={MemoryStick}
                                 title="Memory"
                                 status="warning"
-                                detail="78% (2.3GB / 3GB)"
+                                detail="78%"
                             />
                             <HealthCard
                                 icon={HardDrive}
@@ -90,10 +95,12 @@ export default function MonitoringPage({ params }: MonitoringPageProps) {
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="text-3xl font-bold">127</div>
+                                    <div className="text-3xl font-bold">
+                                        {metrics?.perSecond?.toLocaleString() || "0"}
+                                    </div>
                                     <div className="flex items-center gap-1 mt-1 text-sm text-green-500">
                                         <TrendingUp className="h-4 w-4" />
-                                        +12% from last hour
+                                        Live
                                     </div>
                                 </CardContent>
                             </Card>
@@ -106,10 +113,11 @@ export default function MonitoringPage({ params }: MonitoringPageProps) {
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="text-3xl font-bold">45ms</div>
-                                    <div className="flex items-center gap-1 mt-1 text-sm text-green-500">
-                                        <TrendingDown className="h-4 w-4" />
-                                        -8% from last hour
+                                    <div className="text-3xl font-bold">
+                                        {metrics?.avgLatencyMs?.toFixed(0) || "0"}ms
+                                    </div>
+                                    <div className="flex items-center gap-1 mt-1 text-sm text-muted-foreground">
+                                        Last 1 min
                                     </div>
                                 </CardContent>
                             </Card>
@@ -122,9 +130,11 @@ export default function MonitoringPage({ params }: MonitoringPageProps) {
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="text-3xl font-bold">0.02%</div>
+                                    <div className="text-3xl font-bold">
+                                        {metrics?.errorRate?.toFixed(2) || "0"}%
+                                    </div>
                                     <div className="flex items-center gap-1 mt-1 text-sm text-muted-foreground">
-                                        2 errors in last hour
+                                        Current
                                     </div>
                                 </CardContent>
                             </Card>
@@ -140,15 +150,12 @@ export default function MonitoringPage({ params }: MonitoringPageProps) {
                             </CardHeader>
                             <CardContent>
                                 <div className="flex gap-1">
-                                    {/* Simulated uptime bars for last 30 days */}
+                                    {/* Simulated uptime bars for visualization */}
                                     {Array.from({ length: 30 }).map((_, i) => (
                                         <div
                                             key={i}
-                                            className={cn(
-                                                "flex-1 h-8 rounded",
-                                                i === 15 ? "bg-yellow-500" : "bg-green-500"
-                                            )}
-                                            title={`Day ${30 - i}: ${i === 15 ? "99.5%" : "100%"}`}
+                                            className="flex-1 h-8 rounded bg-green-500"
+                                            title="100%"
                                         />
                                     ))}
                                 </div>
@@ -157,8 +164,10 @@ export default function MonitoringPage({ params }: MonitoringPageProps) {
                                     <span>Today</span>
                                 </div>
                                 <div className="mt-4 text-center">
-                                    <span className="text-2xl font-bold">99.98%</span>
-                                    <span className="text-muted-foreground ms-2">overall uptime</span>
+                                    <span className="text-2xl font-bold">
+                                        {status?.uptime ? `${(status.uptime / 3600).toFixed(1)}h` : "0h"}
+                                    </span>
+                                    <span className="text-muted-foreground ms-2">monitor uptime</span>
                                 </div>
                             </CardContent>
                         </Card>
@@ -168,6 +177,10 @@ export default function MonitoringPage({ params }: MonitoringPageProps) {
         </div>
     );
 }
+
+// Add imports for hooks
+import { useGatewayStatus, useMetrics } from "@/lib/hooks";
+
 
 function HealthCard({
     icon: Icon,

@@ -8,9 +8,8 @@ services:
     command: start --log info --user root --pass naseej123 memory
     ports:
       - "8000:8000"
-      - "3001:3001"
     healthcheck:
-      test: [ "CMD", "true" ]
+      test: [ "CMD", "/surreal", "isready" ]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -20,29 +19,29 @@ services:
       - naseej-network
 
   # ==========================================================================
-  # Rust Backend API
+  # Rust Backend API (Console API)
   # ==========================================================================
   backend:
     build:
       context: .
       dockerfile: Dockerfile.backend
     container_name: naseej-backend
-    # Remove ports mapping as it shares network with surrealdb
-    # ports:
-    #   - "3001:3001"
-    network_mode: service:surrealdb
+    ports:
+      - "3001:3001"
     environment:
       - RUST_LOG=info
       - HOST=0.0.0.0
       - PORT=3001
       - SURREAL_EMBEDDED=false
-      - SURREAL_URL=http://127.0.0.1:8000
+      - SURREAL_URL=http://surrealdb:8000
       - SURREAL_USER=root
       - SURREAL_PASS=naseej123
       - SURREAL_NS=naseej
       - SURREAL_DB=console
+      - COHERE_API_KEY=${COHERE_API_KEY}
     depends_on:
-      - surrealdb
+      surrealdb:
+        condition: service_healthy
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:3001/health" ]
       interval: 30s
@@ -50,12 +49,45 @@ services:
       retries: 3
       start_period: 10s
     restart: unless-stopped
-    # networks:
-    #   - naseej-network
+    networks:
+      - naseej-network
 
-    # ==========================================================================
-    # Next.js Frontend
-    # ==========================================================================
+  # ==========================================================================
+  # NaseejMesh Gateway
+  # ==========================================================================
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile.gateway
+    container_name: naseej-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - RUST_LOG=info
+      - HOST=0.0.0.0
+      - PORT=8080
+      - SURREAL_EMBEDDED=false
+      - SURREAL_URL=ws://surrealdb:8000
+      - SURREAL_USER=root
+      - SURREAL_PASS=naseej123
+      - SURREAL_NS=naseej
+      - SURREAL_DB=console
+    depends_on:
+      surrealdb:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/_gateway/health" ]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - naseej-network
+
+  # ==========================================================================
+  # Next.js Frontend
+  # ==========================================================================
   frontend:
     build:
       context: .
@@ -65,9 +97,11 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
+      # This URL is used by the server-side Next.js to talk to backend
       - NEXT_PUBLIC_API_URL=http://localhost:3001
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     healthcheck:
       test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000" ]
       interval: 30s

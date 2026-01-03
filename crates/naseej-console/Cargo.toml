@@ -44,3 +44,4 @@ uuid = { workspace = true }
 chrono = { workspace = true }
 surrealdb.workspace = true
 async-stream = "0.3"
+serde_yaml = "0.9.34"

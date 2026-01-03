@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use chrono::{DateTime, Utc};
+use crate::serde_utils::deserialize_id;
 
 /// Represents a system user for the admin console.
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
@@ -11,7 +12,7 @@ pub struct User {
     pub password_hash: String,
     pub roles: Vec<String>,
     pub active: bool,
-    pub created_at: DateTime<Utc>,
+    pub created_at: String,
 }
 
 /// Represents a role with a set of permissions.
@@ -21,7 +22,7 @@ pub struct Role {
     pub id: String,
     pub name: String,
     pub permissions: Vec<String>,
-    pub created_at: DateTime<Utc>,
+    pub created_at: String,
 }
 
 /// Represents an API Key for outbound gateway access.
@@ -36,30 +37,7 @@ pub struct ApiKey {
     pub prefix: String, 
     pub owner_id: String,
     pub scopes: Vec<String>,
-    pub expires_at: Option<DateTime<Utc>>,
-    pub created_at: DateTime<Utc>,
-    pub last_used_at: Option<DateTime<Utc>>,
-}
-
-/// Custom deserializer to handle SurrealDB Record IDs which can be strings or objects
-pub fn deserialize_id<'de, D>(deserializer: D) -> Result<String, D::Error>
-where
-    D: serde::Deserializer<'de>,
-{
-    let v = serde_json::Value::deserialize(deserializer)?;
-    match v {
-        serde_json::Value::String(s) => Ok(s),
-        serde_json::Value::Object(map) => {
-            let tb = map.get("tb").and_then(|v| v.as_str()).unwrap_or("unknown");
-            let id = map.get("id").map(|v| {
-                if let Some(s) = v.as_str() {
-                    s.to_string()
-                } else {
-                    v.to_string()
-                }
-            }).unwrap_or_else(|| "unknown".to_string());
-            Ok(format!("{}:{}", tb, id))
-        }
-        _ => Err(serde::de::Error::custom("Invalid ID format: expected string or object")),
-    }
+    pub expires_at: Option<String>,
+    pub created_at: String,
+    pub last_used_at: Option<String>,
 }

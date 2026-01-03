@@ -24,51 +24,7 @@ interface SecurityPageProps {
     params: Promise<{ locale: string }>;
 }
 
-interface SecurityEvent {
-    id: string;
-    type: "blocked" | "warning" | "allowed";
-    message: string;
-    source: string;
-    timestamp: string;
-}
-
-const mockEvents: SecurityEvent[] = [
-    {
-        id: "1",
-        type: "blocked",
-        message: "SQL Injection attempt detected",
-        source: "192.168.1.45",
-        timestamp: "2 minutes ago",
-    },
-    {
-        id: "2",
-        type: "warning",
-        message: "Rate limit exceeded",
-        source: "10.0.0.23",
-        timestamp: "5 minutes ago",
-    },
-    {
-        id: "3",
-        type: "blocked",
-        message: "XSS payload in request body",
-        source: "192.168.1.89",
-        timestamp: "10 minutes ago",
-    },
-    {
-        id: "4",
-        type: "allowed",
-        message: "Valid JWT token verified",
-        source: "10.0.0.15",
-        timestamp: "15 minutes ago",
-    },
-    {
-        id: "5",
-        type: "warning",
-        message: "Unusual request pattern detected",
-        source: "192.168.1.112",
-        timestamp: "30 minutes ago",
-    },
-];
+const mockEvents: SecurityEvent[] = []; // removed
 
 export default function SecurityPage({ params }: SecurityPageProps) {
     const { locale } = use(params);
@@ -76,8 +32,11 @@ export default function SecurityPage({ params }: SecurityPageProps) {
     const isRTL = locale === "ar";
     const t = useTranslations("nav");
 
-    const blocked = mockEvents.filter((e) => e.type === "blocked").length;
-    const warnings = mockEvents.filter((e) => e.type === "warning").length;
+    const { data: events, isLoading } = useSecurityEvents(50);
+
+    const blocked = events?.filter((e) => e.type === "blocked").length || 0;
+    const warnings = events?.filter((e) => e.type === "warning").length || 0;
+    const allowed = events?.filter((e) => e.type === "allowed").length || 0;
 
     return (
         <div className="min-h-screen bg-background">
@@ -110,7 +69,7 @@ export default function SecurityPage({ params }: SecurityPageProps) {
                         <div className="grid gap-4 md:grid-cols-4">
                             <StatsCard
                                 icon={Ban}
-                                title="Blocked Today"
+                                title="Blocked Events"
                                 value={blocked.toString()}
                                 color="text-destructive"
                             />
@@ -122,14 +81,14 @@ export default function SecurityPage({ params }: SecurityPageProps) {
                             />
                             <StatsCard
                                 icon={CheckCircle}
-                                title="Requests Allowed"
-                                value="12,847"
+                                title="Allowed Events"
+                                value={allowed.toString()}
                                 color="text-green-500"
                             />
                             <StatsCard
                                 icon={Shield}
-                                title="WAF Rules Active"
-                                value="24"
+                                title="Active Rules"
+                                value="Standard"
                                 color="text-primary"
                             />
                         </div>
@@ -145,13 +104,13 @@ export default function SecurityPage({ params }: SecurityPageProps) {
                             <FeatureCard
                                 icon={Lock}
                                 title="Rate Limiting"
-                                description="100 requests per minute per IP"
+                                description="Global and per-route rate limiting"
                                 status="active"
                             />
                             <FeatureCard
                                 icon={Key}
                                 title="JWT Validation"
-                                description="RS256 token verification enabled"
+                                description="Token verification enabled"
                                 status="active"
                             />
                         </div>
@@ -165,48 +124,57 @@ export default function SecurityPage({ params }: SecurityPageProps) {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <div className="space-y-3">
-                                    {mockEvents.map((event) => (
-                                        <div
-                                            key={event.id}
-                                            className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50"
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                {event.type === "blocked" && (
-                                                    <Ban className="h-5 w-5 text-destructive" />
-                                                )}
-                                                {event.type === "warning" && (
-                                                    <AlertTriangle className="h-5 w-5 text-yellow-500" />
-                                                )}
-                                                {event.type === "allowed" && (
-                                                    <CheckCircle className="h-5 w-5 text-green-500" />
-                                                )}
-                                                <div>
-                                                    <p className="font-medium">{event.message}</p>
-                                                    <p className="text-sm text-muted-foreground">
-                                                        From {event.source}
-                                                    </p>
+                                {isLoading ? (
+                                    <div className="py-8 text-center text-muted-foreground">Loading events...</div>
+                                ) : !events || events.length === 0 ? (
+                                    <div className="py-8 text-center text-muted-foreground">
+                                        <CheckCircle className="h-12 w-12 mx-auto mb-4 opacity-20 text-green-500" />
+                                        <p>No security events detected recently.</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {events.map((event) => (
+                                            <div
+                                                key={event.id}
+                                                className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50"
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    {event.type === "blocked" && (
+                                                        <Ban className="h-5 w-5 text-destructive" />
+                                                    )}
+                                                    {event.type === "warning" && (
+                                                        <AlertTriangle className="h-5 w-5 text-yellow-500" />
+                                                    )}
+                                                    {event.type === "allowed" && (
+                                                        <CheckCircle className="h-5 w-5 text-green-500" />
+                                                    )}
+                                                    <div>
+                                                        <p className="font-medium">{event.message}</p>
+                                                        <p className="text-sm text-muted-foreground">
+                                                            From {event.source}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                    <Badge
+                                                        variant={
+                                                            event.type === "blocked"
+                                                                ? "destructive"
+                                                                : event.type === "warning"
+                                                                    ? "warning"
+                                                                    : "success"
+                                                        }
+                                                    >
+                                                        {event.type}
+                                                    </Badge>
+                                                    <span className="text-sm text-muted-foreground">
+                                                        {new Date(event.timestamp).toLocaleTimeString()}
+                                                    </span>
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-3">
-                                                <Badge
-                                                    variant={
-                                                        event.type === "blocked"
-                                                            ? "destructive"
-                                                            : event.type === "warning"
-                                                                ? "warning"
-                                                                : "success"
-                                                    }
-                                                >
-                                                    {event.type}
-                                                </Badge>
-                                                <span className="text-sm text-muted-foreground">
-                                                    {event.timestamp}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
+                                        ))}
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
                     </div>
@@ -215,6 +183,11 @@ export default function SecurityPage({ params }: SecurityPageProps) {
         </div>
     );
 }
+
+// Add imports
+import { useSecurityEvents } from "@/lib/hooks";
+import type { SecurityEvent } from "@/lib/api-types";
+
 
 function StatsCard({
     icon: Icon,
