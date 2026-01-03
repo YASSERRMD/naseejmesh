@@ -15,6 +15,7 @@ pub mod transform;
 pub mod observability;
 pub mod health;
 pub mod circuit_breaker;
+pub mod caching;
 
 pub use config::{Route, RouterMap};
 pub use auth::{User, Role, ApiKey};
@@ -29,3 +30,4 @@ pub use health::{
     DatabaseHealthCheck, PingHealthCheck, MemoryHealthCheck
 };
 pub use circuit_breaker::{CircuitBreaker, CircuitBreakerConfig, CircuitBreakerRegistry, State as CircuitState};
+pub use caching::{ResponseCache, CacheConfig, CachedResponse};
