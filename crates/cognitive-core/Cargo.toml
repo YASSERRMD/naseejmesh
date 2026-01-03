@@ -49,5 +49,9 @@ uuid = { workspace = true }
 chrono = { workspace = true }
 regex = { workspace = true }
 
+# Caching
+moka = { workspace = true }
+sha2 = { workspace = true }
+
 [dev-dependencies]
 tokio = { workspace = true }
