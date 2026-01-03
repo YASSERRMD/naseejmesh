@@ -16,6 +16,7 @@ pub mod observability;
 pub mod health;
 pub mod circuit_breaker;
 pub mod caching;
+pub mod openapi_gen;
 
 pub use config::{Route, RouterMap};
 pub use auth::{User, Role, ApiKey};
@@ -31,3 +32,4 @@ pub use health::{
 };
 pub use circuit_breaker::{CircuitBreaker, CircuitBreakerConfig, CircuitBreakerRegistry, State as CircuitState};
 pub use caching::{ResponseCache, CacheConfig, CachedResponse};
+pub use openapi_gen::{OpenApiGenerator, OpenApiDoc};
