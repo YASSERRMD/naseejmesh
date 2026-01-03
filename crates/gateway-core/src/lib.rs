@@ -14,6 +14,7 @@ pub mod router;
 pub mod transform;
 pub mod observability;
 pub mod health;
+pub mod circuit_breaker;
 
 pub use config::{Route, RouterMap};
 pub use auth::{User, Role, ApiKey};
@@ -27,3 +28,4 @@ pub use health::{
     HealthChecker, HealthCheckConfig, HealthStatus, HealthResponse, HealthCheck,
     DatabaseHealthCheck, PingHealthCheck, MemoryHealthCheck
 };
+pub use circuit_breaker::{CircuitBreaker, CircuitBreakerConfig, CircuitBreakerRegistry, State as CircuitState};
