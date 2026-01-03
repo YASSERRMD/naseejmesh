@@ -18,6 +18,7 @@ use gateway_core::{simulate, validate_script};
 pub mod auth;
 pub mod admin;
 pub mod design;
+pub mod mcp_sse;
 
 use crate::state::{AppState, RouteInfo, TransformationInfo, SecurityEvent, SchemaInfo};
 
