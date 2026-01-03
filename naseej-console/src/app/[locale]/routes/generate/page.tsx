@@ -29,9 +29,13 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 
-// Mock API client - should be real imports
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
+// API client for route generation
 async function generateRoutes(schemaId: string, partial: boolean) {
-    const res = await fetch(`/api/schemas/${schemaId}/routes`, {
+    // Extract ID part if it includes table prefix like "api_schemas:id"
+    const idPart = schemaId.includes(':') ? schemaId.split(':')[1] : schemaId;
+    const res = await fetch(`${API_BASE}/api/schemas/${idPart}/routes`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ partial }),
